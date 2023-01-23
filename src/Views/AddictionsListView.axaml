@@ -1,0 +1,73 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:conv="using:AddictionsTracker.Converter"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="AddictionsTracker.Views.AddictionsListView">
+  <UserControl.Resources>
+    <!--  Add the MathAddConverter. Remember to add the needed namespace "conv" -->
+    <conv:DateTimeConverter x:Key="DateTimeConverter" />
+    <!--  This Resource will be used as our ConverterParameter  -->
+    <x:String x:Key="DateTimeConverterParameter">s</x:String>
+
+    <conv:FailureMultiValueConverter x:Key="FailureMultiValueConverter" />
+  </UserControl.Resources>
+  <StackPanel>
+    <Button Command="{Binding $parent[Window].DataContext.InsertAddiction}">
+      Add Addiction
+    </Button>
+    <ItemsRepeater Items="{Binding Addictions}">
+      <ItemsRepeater.ItemTemplate>
+        <DataTemplate>
+          <StackPanel Orientation="Horizontal">
+            <Button Command="{Binding $parent[Window].DataContext.DeleteAddiction}"
+                    CommandParameter="{Binding Title}">
+              Delete
+            </Button>
+            <Button Command="{Binding $parent[Window].DataContext.UpdateAddiction}"
+                    CommandParameter="{Binding Title}"
+                    Content="{Binding Title}"/>
+            <Button Command="{Binding $parent[Window].DataContext.InsertFailure}"
+                    CommandParameter="{Binding Title}">
+              Add Failure
+            </Button>
+            <ItemsRepeater Items="{Binding Failures}">
+              <ItemsRepeater.Layout>
+                <StackLayout Orientation="Horizontal"/>
+              </ItemsRepeater.Layout>
+              <ItemsRepeater.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal">
+                    <Button Command="{Binding $parent[Window].DataContext.DeleteFailure}">
+                      <Button.CommandParameter>
+                        <MultiBinding Converter="{StaticResource FailureMultiValueConverter}">
+                          <Binding Path="$parent[ItemsRepeater].DataContext.Title"/>
+                          <Binding Path="FailedAt"/>
+                          <Binding Path="Note"/>
+                        </MultiBinding>
+                      </Button.CommandParameter>
+                      Delete
+                    </Button>
+                    <Button Content="{Binding FailedAt,
+                                     Converter={StaticResource DateTimeConverter},
+                                     ConverterParameter={StaticResource DateTimeConverterParameter}}"
+                            Command="{Binding $parent[Window].DataContext.UpdateFailure}">
+                      <Button.CommandParameter>
+                        <MultiBinding Converter="{StaticResource FailureMultiValueConverter}">
+                          <Binding Path="$parent[ItemsRepeater].DataContext.Title"/>
+                          <Binding Path="FailedAt"/>
+                          <Binding Path="Note"/>
+                        </MultiBinding>
+                      </Button.CommandParameter>
+                    </Button>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+          </StackPanel>
+        </DataTemplate>
+      </ItemsRepeater.ItemTemplate>
+    </ItemsRepeater>
+  </StackPanel>
+</UserControl>
