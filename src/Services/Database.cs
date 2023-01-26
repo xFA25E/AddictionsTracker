@@ -18,7 +18,7 @@ public class Database
 
     public IEnumerable<Addiction> GetAddictions()
     {
-        var addictions = new Dictionary<string, Addiction>();
+        var addictions = new Dictionary<int, Addiction>();
 
         ExecuteReader(
             Queries.GetAddictions,
@@ -26,8 +26,9 @@ public class Database
             {
                 while (reader.Read())
                 {
-                    var title = reader.GetString(0);
-                    addictions.Add(title, new Addiction(title));
+                    var id = reader.GetInt32(0);
+                    var title = reader.GetString(1);
+                    addictions.Add(id, new Addiction(id, title));
                 };
             }
         );
@@ -38,12 +39,13 @@ public class Database
             {
                 while (reader.Read())
                 {
-                    var failedAt = reader.GetDateTime(0);
-                    var note = reader.IsDBNull(1) ? null : reader.GetString(1);
-                    var failure = new Failure(failedAt, note);
+                    var id = reader.GetInt32(0);
+                    var failedAt = reader.GetDateTime(1);
+                    var note = reader.GetString(2);
+                    var addictionId = reader.GetInt32(3);
 
-                    var addictionTitle = reader.GetString(2);
-                    addictions[addictionTitle].Failures.Add(failure);
+                    var failure = new Failure(id, failedAt, note);
+                    addictions[addictionId].Failures.Add(failure);
                 }
             }
         );
@@ -51,71 +53,74 @@ public class Database
         return addictions.Values;
     }
 
-    public void InsertAddiction(string addictionTitle)
+    public Addiction InsertAddiction(string addictionTitle)
     {
-        ExecuteNonQuery(
+        int? addictionId = null;
+        ExecuteReader(
             Queries.InsertAddiction,
+            reader =>
+            {
+                reader.Read();
+                addictionId = reader.GetInt32(0);
+            },
             ("$addiction_title", addictionTitle)
         );
+
+        return new Addiction(addictionId.Value, addictionTitle);
     }
 
-    public void UpdateAddiction(string addictionTitle, string newAddictionTitle)
+    public void UpdateAddiction(Addiction addiction, string addictionTitle)
     {
         ExecuteNonQuery(
             Queries.UpdateAddiction,
-            ("$addiction_title", addictionTitle),
-            ("$new_addiction_title", newAddictionTitle)
-        );
-    }
-
-    public void DeleteAddiction(string addictionTitle)
-    {
-        ExecuteNonQuery(
-            Queries.DeleteAddiction,
+            ("$addiction_id", addiction.Id),
             ("$addiction_title", addictionTitle)
         );
     }
 
-    public void InsertFailure(
-        string addictionTitle,
-        DateTime failedAt,
+    public void DeleteAddiction(Addiction addiction)
+    {
+        ExecuteNonQuery(
+            Queries.DeleteAddiction,
+            ("$addiction_id", addiction.Id)
+        );
+    }
+
+    public Failure InsertFailure(Addiction addiction, DateTime failedAt, string note)
+    {
+        int? failureId = null;
+        ExecuteReader(
+            Queries.InsertFailure,
+            reader =>
+            {
+                reader.Read();
+                failureId = reader.GetInt32(0);
+            },
+            ("$addiction_id", addiction.Id),
+            ("$failed_at", failedAt),
+            ("$note", note)
+        );
+
+        return new Failure(failureId.Value, failedAt, note);
+    }
+
+    public void UpdateFailure(
+        Failure failure,
+        DateTime? failedAt = null,
         string? note = null
     )
     {
         ExecuteNonQuery(
-            Queries.InsertFailure,
-            ("$addiction_title", addictionTitle),
+            Queries.UpdateFailure,
+            ("$failure_id", failure.Id),
             ("$failed_at", failedAt),
             ("$note", note)
         );
     }
 
-    public void UpdateFailure(
-        string addictionTitle,
-        DateTime failedAt,
-        string? newNote = null,
-        DateTime? newFailedAt = null
-    )
+    public void DeleteFailure(Failure failure)
     {
-        ExecuteNonQuery(
-            Queries.UpdateFailure,
-            ("$addiction_title", addictionTitle),
-            ("$failed_at", failedAt),
-            ("$new_failed_at", newFailedAt),
-            ("$new_note", newNote)
-        );
-    }
-
-    public void DeleteFailure(
-        string addictionTitle,
-        DateTime failedAt
-    )
-    {
-        ExecuteNonQuery(
-            Queries.DeleteFailure,
-            ("$addiction_title", addictionTitle),
-            ("$failed_at", failedAt)
-        );
+        ExecuteNonQuery(Queries.DeleteFailure, ("$failure_id", failure.Id));
     }
 
     void ExecuteNonQuery(
@@ -132,7 +137,8 @@ public class Database
 
     void ExecuteReader(
         string commandText,
-        Action<SqliteDataReader> callback
+        Action<SqliteDataReader> callback,
+        params (string, object?)[] parameters
     )
     {
         ExecuteCommand(
@@ -143,7 +149,8 @@ public class Database
                 {
                     callback(reader);
                 }
-            }
+            },
+            parameters
         );
     }
 
@@ -191,68 +198,85 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS addiction (
   addiction_id INTEGER PRIMARY KEY,
-  addiction_title TEXT UNIQUE NOT NULL
+  addiction_title TEXT UNIQUE NOT NULL CHECK(LENGTH(addiction_title) <> 0)
 );
 
 CREATE TABLE IF NOT EXISTS failure (
-  addiction_id INTEGER NOT NULL,
+  failure_id INTEGER PRIMARY KEY,
   failed_at DATETIME NOT NULL,
-  note TEXT,
-  PRIMARY KEY (failed_at, addiction_id),
+  note TEXT NOT NULL,
+  addiction_id INTEGER NOT NULL,
+  UNIQUE (addiction_id, failed_at),
   FOREIGN KEY (addiction_id)
   REFERENCES addiction (addiction_id)
   ON DELETE CASCADE
   ON UPDATE CASCADE
 );
+
+CREATE TRIGGER IF NOT EXISTS failure_failed_at_insert_constraint
+  BEFORE INSERT
+  ON failure
+  FOR EACH ROW
+    WHEN TYPEOF(NEW.failed_at) <> 'text'
+    OR unixepoch(NEW.failed_at) IS NULL
+    OR unixepoch(NEW.failed_at) % 60 <> 0
+    BEGIN
+      SELECT RAISE(ABORT, 'failed_at must be a valid iso8601 string and seconds must be zero');
+    END;
+
+CREATE TRIGGER IF NOT EXISTS failure_failed_at_update_constraint
+  BEFORE UPDATE
+  OF failed_at
+  ON failure
+  FOR EACH ROW
+    WHEN TYPEOF(NEW.failed_at) <> 'text'
+    OR unixepoch(NEW.failed_at) IS NULL
+    OR unixepoch(NEW.failed_at) % 60 <> 0
+    BEGIN
+      SELECT RAISE(ABORT, 'failed_at must be a valid iso8601 string and seconds must be zero');
+    END;
 ";
 
         public static readonly string InsertAddiction = @"
 INSERT INTO addiction (addiction_title) VALUES ($addiction_title);
+
+SELECT last_insert_rowid();
 ";
 
         public static readonly string UpdateAddiction = @"
 UPDATE addiction
-   SET addiction_title = $new_addiction_title
- WHERE addiction_title = $addiction_title
+   SET addiction_title = $addiction_title
+ WHERE addiction_id = $addiction_id;
 ";
 
         public static readonly string DeleteAddiction = @"
-DELETE FROM addiction WHERE addiction_title = $addiction_title
+DELETE FROM addiction WHERE addiction_id = $addiction_id;
 ";
 
         public static readonly string InsertFailure = @"
 INSERT INTO failure (addiction_id, failed_at, note)
-VALUES ((SELECT addiction_id
-           FROM addiction
-          WHERE addiction_title = $addiction_title),
-          $failed_at,
-          $note);
+VALUES ($addiction_id, $failed_at, $note);
+
+SELECT last_insert_rowid();
 ";
 
         public static readonly string UpdateFailure = @"
 UPDATE failure
-   SET failed_at = COALESCE($new_failed_at, failed_at),
-       note = COALESCE($new_note, note)
- WHERE failed_at = $failed_at
-   AND addiction_id = (SELECT addiction_id
-                         FROM addiction
-                        WHERE addiction_title = $addiction_title)
+   SET failed_at = COALESCE($failed_at, failed_at),
+       note = COALESCE($note, note)
+ WHERE failure_id = $failure_id;
 ";
 
         public static readonly string DeleteFailure = @"
-DELETE FROM failure
- WHERE failed_at = $failed_at
-   AND addiction_id = (SELECT addiction_id
-                         FROM addiction
-                        WHERE addiction_title = $addiction_title)
+DELETE FROM failure WHERE failure_id = $failure_id;
 ";
 
         public static readonly string GetAddictions = @"
-SELECT addiction_title FROM addiction;
+SELECT addiction_id, addiction_title FROM addiction;
 ";
 
         public static readonly string GetFailures = @"
-SELECT failed_at, note, addiction_title
+SELECT failure_id, failed_at, note, addiction_id
   FROM failure
        LEFT JOIN addiction USING(addiction_id);
 ";

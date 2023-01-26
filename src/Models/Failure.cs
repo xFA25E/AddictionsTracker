@@ -5,21 +5,22 @@ namespace AddictionsTracker.Models;
 
 public class Failure
 {
-    public DateTime FailedAt { get; }
-    public string? Note { get; set; }
+    public int Id { get; }
+    public DateTime FailedAt { get; set; }
+    public string Note { get; set; }
 
-    public Failure(DateTime failedAt, string? note = null)
+    public Failure(int id, DateTime failedAt, string note)
     {
+        Id = id;
         FailedAt = failedAt;
         Note = note;
     }
 }
 
-public class FailedAtComparer : Comparer<DateTime>
+public class DescendingFailedAtComparer : Comparer<DateTime>
 {
     public override int Compare(DateTime x, DateTime y)
     {
-
         if (y.Year.CompareTo(x.Year) != 0)
         {
             return y.Year.CompareTo(x.Year);
@@ -45,15 +46,21 @@ public class FailedAtComparer : Comparer<DateTime>
     }
 }
 
-public class FailureComparer : Comparer<Failure>
+public class DescendingFailureComparer : Comparer<Failure>
 {
     public override int Compare(Failure? x, Failure? y)
     {
         if (x == null || y == null)
         {
-            throw new ArgumentException("Cannot compare Failure to null!");
+            throw new ArgumentException("Cannot compare null Failures");
         }
 
-        return (new FailedAtComparer()).Compare(x.FailedAt, y.FailedAt);
+        if (x.Id.CompareTo(y.Id) == 0)
+        {
+            return x.Id.CompareTo(y.Id);
+        }
+
+        return (new DescendingFailedAtComparer())
+            .Compare(x.FailedAt, y.FailedAt);
     }
 }

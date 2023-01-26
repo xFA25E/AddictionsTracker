@@ -5,7 +5,6 @@ using AddictionsTracker.Services;
 using AddictionsTracker.Models;
 using System.Linq;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace AddictionsTracker.ViewModels;
 
@@ -34,152 +33,176 @@ public class MainWindowViewModel : ViewModelBase
     {
         HandleAddictionDialog(
             string.Empty,
-            addiction =>
+            addictionTitle =>
             {
-                if (addiction != null)
+                if (addictionTitle != null)
                 {
-                    Database.InsertAddiction(addiction.Title);
-                    AddictionsList.Addictions.Add(addiction);
+                    AddictionsList.Addictions.Add(
+                        Database.InsertAddiction(addictionTitle)
+                    );
                 }
             }
         );
     }
 
-    public void UpdateAddiction(string addictionTitle)
+    public void UpdateAddiction(int addictionId)
     {
+        var addiction = findAddiction(addictionId);
 
         HandleAddictionDialog(
-            addictionTitle,
-            addiction =>
+            addiction.Title,
+            addictionTitle =>
             {
-                if (addiction != null)
+                if (addictionTitle != null)
                 {
-                    Database.UpdateAddiction(addictionTitle, addiction.Title);
-                    AddictionsList.Addictions.Single(
-                        x => x.Title.Equals(addictionTitle)
-                    ).Title = addiction.Title;
+                    Database.UpdateAddiction(addiction, addictionTitle);
+                    addiction.Title = addictionTitle;
                 }
             }
         );
     }
 
-    public void DeleteAddiction(string addictionTitle)
+    public void DeleteAddiction(int addictionId)
     {
+        var addiction = findAddiction(addictionId);
+
         HandleDeletionDialog(
             string.Format(
                 "Are you sure that you want to delete the following addiction: {0}",
-                addictionTitle
+                addiction.Title
             ),
             isYes =>
             {
                 if (isYes)
                 {
-                    Database.DeleteAddiction(addictionTitle);
-                    AddictionsList.Addictions.Remove(
-                        AddictionsList.Addictions.Single(
-                            x => x.Title.Equals(addictionTitle)
-                        )
-                    );
+                    Database.DeleteAddiction(addiction);
+                    AddictionsList.Addictions.Remove(addiction);
                 }
             }
         );
     }
 
-    public void InsertFailure(string addictionTitle)
+    public void InsertFailure(int addictionId)
     {
+        var addiction = findAddiction(addictionId);
+
+        var now = DateTime.Now;
         HandleFailureDialog(
-            addictionTitle,
-            DateTime.Now,
+            addiction.Failures,
+            new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0),
             string.Empty,
-            failure =>
+            failureTuple =>
             {
-                if (failure != null)
+                if (failureTuple != null)
                 {
-                    Database.InsertFailure(
-                        addictionTitle,
-                        failure.FailedAt,
-                        failure.Note
+                    var (failedAt, note) = failureTuple.Value;
+                    addiction.Failures.Add(
+                        Database.InsertFailure(addiction, failedAt, note)
                     );
-                    AddictionsList.Addictions.Single(
-                        x => x.Title.Equals(addictionTitle)
-                    ).Failures.Add(failure);
                 }
             }
         );
     }
 
-    public void UpdateFailure(object args)
+    public void UpdateFailure(int failureId)
     {
-        var addictionTitle = (string) ((ReadOnlyCollection<Object>) args)[0];
-        var failedAt = (DateTime) ((ReadOnlyCollection<Object>)args)[1];
-        var note = (string?) ((ReadOnlyCollection<Object>)args)[2];
-        var failures = AddictionsList.Addictions.Single(
-            x => x.Title.Equals(addictionTitle)
-        ).Failures;
-
-        failures.Remove(new Failure(failedAt));
+        var (addiction, failure) = findAddictionAndFailure(failureId);
 
         HandleFailureDialog(
-            addictionTitle,
-            failedAt,
-            note,
-            failure =>
+            addiction.Failures,
+            failure.FailedAt,
+            failure.Note,
+            failureTuple =>
             {
-                if (failure != null)
+                if (failureTuple != null)
                 {
-                    Database.UpdateFailure(
-                        addictionTitle,
-                        failedAt,
-                        failure.Note,
-                        failure.FailedAt
-                    );
-                    failures.Add(failure);
-                } else {
-                    failures.Add(new Failure(failedAt, note));
+                    var (failedAt, note) = failureTuple.Value;
+
+                    Database.UpdateFailure(failure, failedAt, note);
+                    addiction.Failures.Remove(failure);
+                    failure.FailedAt = failedAt;
+                    failure.Note = note;
+                    addiction.Failures.Add(failure);
                 }
             }
         );
     }
 
-    public void DeleteFailure(object args)
+    public void DeleteFailure(int failureId)
     {
-        var addictionTitle = (string) ((ReadOnlyCollection<Object>) args)[0];
-        var failedAt = (DateTime) ((ReadOnlyCollection<Object>)args)[1];
-        var note = (string?) ((ReadOnlyCollection<Object>)args)[2];
+        var (addiction, failure) = findAddictionAndFailure(failureId);
 
         HandleDeletionDialog(
             string.Format(
                 "Are you sure that you want to delete the following failure of \"{0}\" addiction: {1} {2}",
-                addictionTitle,
-                failedAt.ToString("u"),
-                note
+                addiction.Title,
+                failure.FailedAt.ToString("u"),
+                failure.Note
             ),
             isYes =>
             {
                 if (isYes)
                 {
-                    Database.DeleteFailure(addictionTitle, failedAt);
-                    AddictionsList.Addictions.Single(
-                        x => x.Title.Equals(addictionTitle)
-                    ).Failures.Remove(new Failure(failedAt));
+                    addiction.Failures.Remove(failure);
+                    Database.DeleteFailure(failure);
                 }
             }
         );
     }
 
-    void HandleAddictionDialog(string initialTitle, Action<Addiction?> callback)
+    void HandleAddictionDialog(string initialTitle, Action<string?> callback)
     {
-        var titles = AddictionsList.Addictions.Select(x => x.Title).ToHashSet();
+        var titles = AddictionsList.Addictions
+            .Select(a => a.Title)
+            .Where(t => !t.Equals(initialTitle))
+            .ToHashSet();
+
         var vm = new AddictionDialogViewModel(titles, initialTitle);
 
-        Observable.Merge(vm.Ok, vm.Cancel.Select(_ => (Addiction?)null)).Take(1)
-            .Subscribe(
-                addiction =>
-                {
-                    callback(addiction);
-                    Content = AddictionsList;
-                }
-            );
+        Observable.Merge(
+            vm.Ok,
+            vm.Cancel.Select(_ => (string?)null)
+        ).Take(1).Subscribe(
+            addictionTitle =>
+            {
+                callback(addictionTitle);
+                Content = AddictionsList;
+            }
+        );
+
+        Content = vm;
+    }
+
+    void HandleFailureDialog(
+        IEnumerable<Failure> failures,
+        DateTime initialDateTime,
+        string initialNote,
+        Action<(DateTime, string)?> callback
+    )
+    {
+        var failedAts = new SortedSet<DateTime>(
+            failures
+            .Select(f => f.FailedAt)
+            .Where(d => !d.Equals(initialDateTime)),
+            new DescendingFailedAtComparer()
+        );
+
+        var vm = new FailureDialogViewModel(
+            failedAts,
+            initialDateTime,
+            initialNote
+        );
+
+        Observable.Merge(
+            vm.Ok.Select(t => ((DateTime, string)?)t),
+            vm.Cancel.Select(_ => ((DateTime, string)?)null)
+        ).Take(1).Subscribe(
+            failureTuple =>
+            {
+                callback(failureTuple);
+                Content = AddictionsList;
+            }
+        );
 
         Content = vm;
     }
@@ -188,47 +211,37 @@ public class MainWindowViewModel : ViewModelBase
     {
         var vm = new DeletionDialogViewModel(text);
 
-        Observable.Merge(vm.Yes.Select(_ => true), vm.No.Select(_ => false))
-            .Take(1).Subscribe(
-                isYes =>
-                {
-                    callback(isYes);
-                    Content = AddictionsList;
-                }
-            );
+        Observable.Merge(
+            vm.Yes.Select(_ => true),
+            vm.No.Select(_ => false)
+        ).Take(1).Subscribe(
+            isYes =>
+            {
+                callback(isYes);
+                Content = AddictionsList;
+            }
+        );
 
         Content = vm;
     }
 
-    void HandleFailureDialog(
-        string addictionTitle,
-        DateTime initialDateTime,
-        string? initialNote,
-        Action<Failure?> callback
-    )
+    Addiction findAddiction(int addictionId)
     {
-        var addiction = AddictionsList.Addictions.Single(
-            x => x.Title.Equals(addictionTitle)
-        );
-        var vm = new FailureDialogViewModel(
-            new SortedSet<DateTime>(
-                addiction.Failures.Select(x => x.FailedAt),
-                new FailedAtComparer()
-            ),
-            initialDateTime,
-            initialNote
-        );
-
-        Observable.Merge(vm.Ok, vm.Cancel.Select(_ => (Failure?)null)).Take(1)
-            .Subscribe(
-                failure =>
-                {
-                    callback(failure);
-                    Content = AddictionsList;
-                }
-            );
-
-        Content = vm;
+        return AddictionsList.Addictions.Single(a => a.Id == addictionId);
     }
 
+    (Addiction, Failure) findAddictionAndFailure(int failureId)
+    {
+        foreach (var a in AddictionsList.Addictions)
+        {
+            foreach (var f in a.Failures)
+            {
+                if (f.Id == failureId)
+                {
+                    return (a, f);
+                }
+            }
+        }
+        throw new ArgumentException("Invalid id", nameof(failureId));
+    }
 }

@@ -2,7 +2,6 @@ using System.Reactive;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
-using AddictionsTracker.Models;
 using System;
 using Avalonia.Controls;
 
@@ -33,31 +32,36 @@ class FailureDialogViewModel : ViewModelBase
     public FailureDialogViewModel(
         ISet<DateTime> datetimesToIgnore,
         DateTime initialDateTime,
-        string? initialNote = null
+        string initialNote
     )
     {
         DatetimesToIgnore = datetimesToIgnore;
-        note = initialNote ?? string.Empty;
-        failureDateTime = initialDateTime;
+        note = initialNote;
+        failureDateTime = new DateTime(
+            initialDateTime.Year, initialDateTime.Month, initialDateTime.Day,
+            initialDateTime.Hour, initialDateTime.Minute, 0
+        );
 
         DatePicker.SelectedDate = new DateTimeOffset(initialDateTime);
-        DatePicker.SelectedDateChanged += (_, a) => UpdateFailureDate(a.NewDate.Value);
+        DatePicker.SelectedDateChanged +=
+            (_, a) => UpdateFailureDate(a.NewDate.Value);
 
         TimePicker.ClockIdentifier = "24HourClock";
         TimePicker.SelectedTime = initialDateTime.TimeOfDay;
-        TimePicker.SelectedTimeChanged += (_, a) => UpdateFailureTime(a.NewTime.Value);
+        TimePicker.SelectedTimeChanged +=
+            (_, a) => UpdateFailureTime(a.NewTime.Value);
 
         var okEnabled = this.WhenAnyValue(
             x => x.FailureDateTime,
             x => !DatetimesToIgnore.Contains(x)
         );
 
-        Ok = ReactiveCommand.Create(() => new Failure(FailureDateTime, Note), okEnabled);
+        Ok = ReactiveCommand.Create(() => (FailureDateTime, Note), okEnabled);
         Cancel = ReactiveCommand.Create(() => { });
 
     }
 
-    public ReactiveCommand<Unit, Failure> Ok { get; }
+    public ReactiveCommand<Unit, (DateTime, string)> Ok { get; }
     public ReactiveCommand<Unit, Unit> Cancel { get; }
 
     void UpdateFailureDate(DateTimeOffset date)

@@ -14,6 +14,7 @@ https://www.codeproject.com/Articles/1161127/Why-is-reflection-slow
 * use reactiveui?
 https://www.reactiveui.net/docs/handbook/view-models/
 
+* use transaction to return last insert rowid?
 * try avalonstudio
 https://github.com/VitalElement/AvalonStudio
 this might be good for style development of avalonia

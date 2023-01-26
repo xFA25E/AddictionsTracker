@@ -2,7 +2,6 @@ using System.Reactive;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
-using AddictionsTracker.Models;
 
 namespace AddictionsTracker.ViewModels;
 
@@ -11,11 +10,6 @@ class AddictionDialogViewModel : ViewModelBase
     string title;
 
     ISet<string> TitlesToIgnore { get; }
-
-    public AddictionDialogViewModel(ISet<string> titlesToIgnore)
-        : this(titlesToIgnore, string.Empty)
-    {
-    }
 
     public AddictionDialogViewModel(
         ISet<string> titlesToIgnore,
@@ -30,7 +24,7 @@ class AddictionDialogViewModel : ViewModelBase
             x => !(string.IsNullOrWhiteSpace(x) || TitlesToIgnore.Contains(x))
         );
 
-        Ok = ReactiveCommand.Create(() => new Addiction(Title), okEnabled);
+        Ok = ReactiveCommand.Create(() => Title, okEnabled);
         Cancel = ReactiveCommand.Create(() => { });
 
     }
@@ -41,6 +35,6 @@ class AddictionDialogViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref title, value);
     }
 
-    public ReactiveCommand<Unit, Addiction> Ok { get; }
+    public ReactiveCommand<Unit, string> Ok { get; }
     public ReactiveCommand<Unit, Unit> Cancel { get; }
 }
