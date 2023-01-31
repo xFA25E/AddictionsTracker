@@ -15,6 +15,10 @@ https://www.codeproject.com/Articles/1161127/Why-is-reflection-slow
 https://www.reactiveui.net/docs/handbook/view-models/
 
 * use transaction to return last insert rowid?
+
+* see if you can make a coerce to addiction of addictionvm
+
+* maybe don't use hours and just record dates
 * try avalonstudio
 https://github.com/VitalElement/AvalonStudio
 this might be good for style development of avalonia

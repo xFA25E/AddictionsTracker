@@ -1,8 +1,9 @@
 using AddictionsTracker.Models;
-using Microsoft.Data.Sqlite;
 using System.Collections.Generic;
+using Microsoft.Data.Sqlite;
 using System.IO;
 using System;
+using System.Linq;
 
 namespace AddictionsTracker.Services;
 
@@ -16,7 +17,7 @@ public class Database
         ExecuteNonQuery(Queries.CreateTables);
     }
 
-    public IEnumerable<Addiction> GetAddictions()
+    public List<Addiction> GetAddictions()
     {
         var addictions = new Dictionary<int, Addiction>();
 
@@ -44,13 +45,13 @@ public class Database
                     var note = reader.GetString(2);
                     var addictionId = reader.GetInt32(3);
 
-                    var failure = new Failure(id, failedAt, note);
+                    var failure = new Failure(id, DateOnly.FromDateTime(failedAt), note);
                     addictions[addictionId].Failures.Add(failure);
                 }
             }
         );
 
-        return addictions.Values;
+        return addictions.Values.ToList();
     }
 
     public Addiction InsertAddiction(string addictionTitle)
@@ -86,7 +87,7 @@ public class Database
         );
     }
 
-    public Failure InsertFailure(Addiction addiction, DateTime failedAt, string note)
+    public Failure InsertFailure(Addiction addiction, DateOnly failedAt, string note)
     {
         int? failureId = null;
         ExecuteReader(
@@ -106,7 +107,7 @@ public class Database
 
     public void UpdateFailure(
         Failure failure,
-        DateTime? failedAt = null,
+        DateOnly? failedAt = null,
         string? note = null
     )
     {
@@ -203,7 +204,7 @@ CREATE TABLE IF NOT EXISTS addiction (
 
 CREATE TABLE IF NOT EXISTS failure (
   failure_id INTEGER PRIMARY KEY,
-  failed_at DATETIME NOT NULL,
+  failed_at TEXT NOT NULL,
   note TEXT NOT NULL,
   addiction_id INTEGER NOT NULL,
   UNIQUE (addiction_id, failed_at),
@@ -219,9 +220,9 @@ CREATE TRIGGER IF NOT EXISTS failure_failed_at_insert_constraint
   FOR EACH ROW
     WHEN TYPEOF(NEW.failed_at) <> 'text'
     OR unixepoch(NEW.failed_at) IS NULL
-    OR unixepoch(NEW.failed_at) % 60 <> 0
+    OR unixepoch(NEW.failed_at) % (60 * 60 * 24) <> 0
     BEGIN
-      SELECT RAISE(ABORT, 'failed_at must be a valid iso8601 string and seconds must be zero');
+      SELECT RAISE(ABORT, 'failed_at must be a valid date string');
     END;
 
 CREATE TRIGGER IF NOT EXISTS failure_failed_at_update_constraint
@@ -231,9 +232,9 @@ CREATE TRIGGER IF NOT EXISTS failure_failed_at_update_constraint
   FOR EACH ROW
     WHEN TYPEOF(NEW.failed_at) <> 'text'
     OR unixepoch(NEW.failed_at) IS NULL
-    OR unixepoch(NEW.failed_at) % 60 <> 0
+    OR unixepoch(NEW.failed_at) % (60 * 60 * 24) <> 0
     BEGIN
-      SELECT RAISE(ABORT, 'failed_at must be a valid iso8601 string and seconds must be zero');
+      SELECT RAISE(ABORT, 'failed_at must be a valid date string');
     END;
 ";
 
