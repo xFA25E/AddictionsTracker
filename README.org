@@ -31,6 +31,10 @@ third one
 * Maybe use Tapped event on addiction title border
 Get rid of hacky button
 * dragndrop for rows
+* save order to database
+* focus elements right in dialogs
+* When editing addiction title, it is not changed in notes
+use notifypropertychanged?
 * try avalonstudio
 https://github.com/VitalElement/AvalonStudio
 this might be good for style development of avalonia

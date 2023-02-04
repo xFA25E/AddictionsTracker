@@ -1,27 +1,13 @@
 using System;
 using System.Collections.Generic;
-using Avalonia;
+using System.ComponentModel;
 using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 
 namespace AddictionsTracker.Dialogs;
 
 public partial class AddictionDialog : Window
 {
-    HashSet<string> forbiddenTitles;
-
-    public string Label
-    {
-        get => ((TextBlock)label).Text;
-        set => ((TextBlock)label).Text = value;
-    }
-
     public AddictionDialog() : this("Addiction", string.Empty, new string[0]) {}
-
-    public AddictionDialog(string initialInput)
-        : this("Addiction", initialInput, new string[0]) {}
 
     public AddictionDialog(
         string label,
@@ -30,32 +16,80 @@ public partial class AddictionDialog : Window
     )
     {
         InitializeComponent();
-        this.forbiddenTitles = new(forbiddenTitles);
-        Label = label;
-        ((TextBox)textBox).Text = initialInput;
-    }
-
-    public void okButton_Click(object? sender, RoutedEventArgs args)
-    {
-        this.Close(((TextBox)textBox).Text);
-    }
-
-    public void cancelButton_Click(object? sender, RoutedEventArgs args)
-    {
-        this.Close(null);
-    }
-
-    private void textBox_TextPropertyChanged(
-        object? sender,
-        AvaloniaPropertyChangedEventArgs args
-    )
-    {
-        if (args.Property == TextBox.TextProperty)
+        DataContext = new AddictionDialogViewModel(forbiddenTitles)
         {
-            var newValue = (string?)args.NewValue;
-            ((Button)okButton).IsEnabled =
-                !string.IsNullOrWhiteSpace(newValue)
-                && !forbiddenTitles.Contains(newValue);
+            Label = label,
+            Title = initialInput,
+            Ok = (title) => this.Close(title),
+            Cancel = () => this.Close(null),
+        };
+    }
+}
+
+public class AddictionDialogViewModel : INotifyPropertyChanged
+{
+    HashSet<string> forbiddenTitles;
+
+    public AddictionDialogViewModel(IEnumerable<string> forbiddenTitles)
+    {
+        this.forbiddenTitles = new(forbiddenTitles);
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    string label = "Addiction";
+    public string Label
+    {
+        get => label;
+        set
+        {
+            label = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Label)));
+        }
+    }
+
+    string title = "";
+    public string Title
+    {
+        get => title;
+        set
+        {
+            title = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
+            CanOk = !(string.IsNullOrWhiteSpace(value)
+                      || forbiddenTitles.Contains(value));
+        }
+    }
+
+    void OkCommand() => Ok(Title);
+    Action<string> ok = (_) => {};
+    public Action<string> Ok {
+        get => ok;
+        set
+        {
+            ok = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Ok)));
+        }
+    }
+
+    bool canOk = false;
+    public bool CanOk
+    {
+        get => canOk;
+        set
+        {
+            canOk = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanOk)));
+        }
+    }
+
+    Action cancel = () => {};
+    public Action Cancel {
+        get => cancel;
+        set
+        {
+            cancel = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Cancel)));
         }
     }
 }

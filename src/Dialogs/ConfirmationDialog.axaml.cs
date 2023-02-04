@@ -1,7 +1,6 @@
-using Avalonia;
+using System;
+using System.ComponentModel;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 
 namespace AddictionsTracker.Dialogs;
 
@@ -10,19 +9,50 @@ public partial class ConfirmationDialog : Window
 
     public ConfirmationDialog() : this(string.Empty) {}
 
-    public ConfirmationDialog(string what)
+    public ConfirmationDialog(string prompt)
     {
         InitializeComponent();
-        ((TextBlock)textBlock).Text = what;
+        DataContext = new ConfirmationDialogViewModel()
+        {
+            Prompt = prompt,
+            Yes = () => this.Close(true),
+            No = () => this.Close(false),
+        };
+    }
+}
+
+public class ConfirmationDialogViewModel : INotifyPropertyChanged
+{
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    string prompt = string.Empty;
+    public string Prompt
+    {
+        get => prompt;
+        set
+        {
+            prompt = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Prompt)));
+        }
     }
 
-    public void yesButton_Click(object? sender, RoutedEventArgs args)
-    {
-        this.Close(true);
+    Action yes = () => {};
+    public Action Yes {
+        get => yes;
+        set
+        {
+            yes = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Yes)));
+        }
     }
 
-    public void noButton_Click(object? sender, RoutedEventArgs args)
-    {
-        this.Close(false);
+    Action no = () => {};
+    public Action No {
+        get => no;
+        set
+        {
+            no = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(No)));
+        }
     }
 }

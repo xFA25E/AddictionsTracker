@@ -1,18 +1,12 @@
 using System;
 using System.Collections.Generic;
-using Avalonia;
+using System.ComponentModel;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 
 namespace AddictionsTracker.Dialogs;
 
 public partial class FailureDialog : Window
 {
-    DateOnly now = DateTime.Now.ToDateOnly();
-
-    HashSet<DateOnly> forbiddenDates;
-
     public FailureDialog()
         : this(
             "ADDICTION",
@@ -28,12 +22,15 @@ public partial class FailureDialog : Window
         IEnumerable<DateOnly> forbiddenDates
     )
     {
-        this.forbiddenDates = new(forbiddenDates);
-
         InitializeComponent();
-        ((TextBlock)textBlock).Text = $"Failed {addictionTitle} at";
-        ((TextBox)textBox).Text = initialNote;
-        ((DatePicker)datePicker).SelectedDate = initialDate.ToDateTimeOffset();
+        DataContext = new FailureDialogViewModel(forbiddenDates)
+        {
+            AddictionTitle = addictionTitle,
+            Note = initialNote,
+            Ok = (data) => this.Close(data),
+            Cancel = () => this.Close(null),
+        };
+        datePicker.SelectedDate = initialDate.ToDateTimeOffset();
     }
 
     public void datePicker_SelectedDateChanged(
@@ -41,23 +38,89 @@ public partial class FailureDialog : Window
         DatePickerSelectedValueChangedEventArgs args
     )
     {
-        var newValue = args.NewDate.Value.ToDateOnly();
-        ((Button)okButton).IsEnabled =
-            now >= newValue && !forbiddenDates.Contains(newValue);
+        if (DataContext != null && args.NewDate != null)
+        {
+            ((FailureDialogViewModel)DataContext).FailedAt =
+                args.NewDate.Value.ToDateOnly();
+        }
+    }
+}
+
+public class FailureDialogViewModel : INotifyPropertyChanged
+{
+    DateOnly now = DateTime.Now.ToDateOnly();
+    HashSet<DateOnly> forbiddenDates;
+
+    public FailureDialogViewModel(IEnumerable<DateOnly> forbiddenDates)
+    {
+        this.forbiddenDates = new(forbiddenDates);
     }
 
-    public void okButton_Click(object? sender, RoutedEventArgs args)
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    string addictionTitle = "ADDICTION";
+    public string AddictionTitle
     {
-        this.Close(
-            (
-                ((DatePicker)datePicker).SelectedDate.Value.ToDateOnly(),
-                ((TextBox)textBox).Text
-            )
-        );
+        get => addictionTitle;
+        set
+        {
+            addictionTitle = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AddictionTitle)));
+        }
     }
 
-    public void cancelButton_Click(object? sender, RoutedEventArgs args)
+    DateOnly failedAt = DateTime.Now.ToDateOnly();
+    public DateOnly FailedAt
     {
-        this.Close(null);
+        get => failedAt;
+        set
+        {
+            failedAt = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FailedAt)));
+            CanOk = now >= value && !forbiddenDates.Contains(value);
+        }
+    }
+
+    string note = string.Empty;
+    public string Note
+    {
+        get => note;
+        set
+        {
+            note = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Note)));
+        }
+    }
+
+    void OkCommand() => Ok((FailedAt, Note));
+    Action<(DateOnly, string)> ok = (_) => {};
+    public Action<(DateOnly, string)> Ok {
+        get => ok;
+        set
+        {
+            ok = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Ok)));
+        }
+    }
+
+    bool canOk = false;
+    public bool CanOk
+    {
+        get => canOk;
+        set
+        {
+            canOk = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanOk)));
+        }
+    }
+
+    Action cancel = () => {};
+    public Action Cancel {
+        get => cancel;
+        set
+        {
+            cancel = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Cancel)));
+        }
     }
 }

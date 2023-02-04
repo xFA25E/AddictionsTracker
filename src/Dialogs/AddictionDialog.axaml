@@ -24,33 +24,31 @@
     <StackPanel>
       <DockPanel Margin="10">
         <TextBlock
-            Name="label"
             DockPanel.Dock="Left"
             Margin="5,0,5,0"
             VerticalAlignment="Center"
-            Text="Addiction"
+            Text="{Binding Label}"
             />
         <TextBox
-            Name="textBox"
-            PropertyChanged="textBox_TextPropertyChanged"
             Margin="5,0,5,0"
             MinWidth="300"
             Watermark="Addiction"
+            Text="{Binding Title}"
             />
       </DockPanel>
       <DockPanel Margin="10">
         <Button
-            Name="okButton"
-            Click="okButton_Click"
             Margin="5,0,5,0"
             Content="Ok"
+            IsEnabled="{Binding CanOk}"
+            Command="{Binding OkCommand}"
             />
         <Button
             DockPanel.Dock="Right"
-            Click="cancelButton_Click"
             Margin="5,0,5,0"
             HorizontalAlignment="Right"
             Content="Cancel"
+            Command="{Binding Cancel}"
             />
       </DockPanel>
     </StackPanel>
