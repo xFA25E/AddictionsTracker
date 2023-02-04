@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using AddictionsTracker.Services;
+using AddictionsTracker.Dialogs;
 using Avalonia.Controls.Primitives;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Media;
 using Avalonia.Input;
 using System.Linq;
+using Avalonia.Interactivity;
 
 namespace AddictionsTracker;
 
@@ -17,7 +19,6 @@ public partial class MainWindow : Window
     int dayWidth = 2;
 
     List<Addiction> addictions;
-    List<(Border, Border)> addictionPositions = new();
 
     public MainWindow()
     {
@@ -96,31 +97,128 @@ public partial class MainWindow : Window
         }
         aGrid.EndBatchUpdate();
 
-        var temp = addictions[rowA];
-        addictions[rowA] = addictions[rowB];
-        addictions[rowB] = temp;
+        var temp = addictions[rowA - 1];
+        addictions[rowA - 1] = addictions[rowB - 1];
+        addictions[rowB - 1] = temp;
     }
 
     private void moveUp(int row)
     {
-        if (row > 1)
-        {
-            swapRows(row, row - 1);
-        }
+        if (row > 1) swapRows(row, row - 1);
     }
 
     private void moveDown(int row)
     {
-        if (row < addictions.Count)
+        if (row < addictions.Count) swapRows(row, row + 1);
+    }
+
+    private async void addAddiction(object? sender, RoutedEventArgs args)
+    {
+        var dialog = new AddictionDialog(
+            "Add Addiction",
+            string.Empty,
+            addictions.Select(a => a.Title)
+        );
+
+        var result = await dialog.ShowDialog<string?>(this);
+        if (result != null)
         {
-            swapRows(row, row + 1);
+            var addiction = database.InsertAddiction(result);
+            addictions.Add(addiction);
+            CreateControls();
+        }
+    }
+
+    private async void editAddition(Addiction addiction, TextBlock label)
+    {
+        var dialog = new AddictionDialog(
+            "Edit Addiction",
+            addiction.Title,
+            addictions
+            .Select(a => a.Title)
+            .Where(t => !t.Equals(addiction.Title))
+        );
+
+        var result = await dialog.ShowDialog<string?>(this);
+        if (result != null)
+        {
+            database.UpdateAddiction(addiction, result);
+            addiction.Title = result;
+            label.Text = result;
+        }
+    }
+
+    private async void removeAddiction(int index)
+    {
+        var dialog = new ConfirmationDialog(
+            $"Are you sure that you want to delete {addictions[index].Title}?"
+        );
+        if (await dialog.ShowDialog<bool>(this))
+        {
+            database.DeleteAddiction(addictions[index]);
+            addictions.RemoveAt(index);
+            CreateControls();
+        }
+    }
+
+    private async void addFailure(Addiction addiction)
+    {
+        var dialog = new FailureDialog(
+            addiction.Title,
+            DateTime.Now.ToDateOnly(),
+            string.Empty,
+            addiction.Failures.Select(f => f.FailedAt)
+        );
+        var result = await dialog.ShowDialog<(DateOnly FailedAt, string Note)?>(this);
+        if (result != null)
+        {
+            var (failedAt, note) = result.Value;
+            var failure = database.InsertFailure(addiction, failedAt, note);
+            addiction.Failures.Add(failure);
+            CreateControls();
+        }
+    }
+
+    private async void editFailure(Addiction addiction, Failure failure)
+    {
+        var dialog = new FailureDialog(
+            addiction.Title,
+            failure.FailedAt,
+            failure.Note,
+            addiction.Failures
+            .Select(f => f.FailedAt)
+            .Where(d => !d.Equals(failure.FailedAt))
+        );
+        var result = await dialog.ShowDialog<(DateOnly FailedAt, string Note)?>(this);
+        if (result != null)
+        {
+            var (failedAt, note) = result.Value;
+            database.UpdateFailure(failure, failedAt, note);
+            addiction.Failures.Remove(failure);
+            failure.FailedAt = failedAt;
+            failure.Note = note;
+            addiction.Failures.Add(failure);
+            CreateControls();
+        }
+    }
+
+    private async void deleteFailure(Addiction addiction, Failure failure)
+    {
+        var dialog = new ConfirmationDialog(
+            $"Are you sure that you want to delete failure of {addiction.Title} at {failure.FailedAt.ToString("yyyy MMMM dd")}?"
+        );
+        if (await dialog.ShowDialog<bool>(this))
+        {
+            database.DeleteFailure(failure);
+            addiction.Failures.Remove(failure);
+            CreateControls();
         }
     }
 
     public void CreateControls()
     {
         Grid aGrid = addictionsGrid;
-        var dateNow = DateOnly.FromDateTime(DateTime.Now);
+        var dateNow = DateTime.Now.ToDateOnly();
 
         aGrid.Children.Clear();
         aGrid.RowDefinitions.Clear();
@@ -141,6 +239,7 @@ public partial class MainWindow : Window
             addAddictionButton.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
             addAddictionButton.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
             addAddictionButton.HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Center;
+            addAddictionButton.Click += addAddiction;
             border.Child = addAddictionButton;
         }
 
@@ -194,35 +293,35 @@ public partial class MainWindow : Window
             // ADDICTION
             {
                 var border = new Border();
+                border.Background = new SolidColorBrush(Color.Parse("White"));
                 border.BorderBrush = new SolidColorBrush(Color.Parse("Black"));
                 border.BorderThickness = new Avalonia.Thickness(0, 0, 1, 1);
                 border.SetValue(Grid.RowProperty, row);
                 aGrid.Children.Add(border);
 
-                var dockPanel = new DockPanel();
-                border.Child = dockPanel;
-
                 var addictionLabel = new TextBlock();
                 addictionLabel.Text = addiction.Title;
-                addictionLabel.SetValue(DockPanel.DockProperty, Dock.Right);
                 addictionLabel.Padding = new Avalonia.Thickness(8);
-                dockPanel.Children.Add(addictionLabel);
-
-                var editButton = new Button();
-                editButton.Content = "*";
-                editButton.SetValue(DockPanel.DockProperty, Dock.Left);
-                dockPanel.Children.Add(editButton);
+                border.Child = addictionLabel;
 
                 // Context Menu
                 {
                     var addFailureMI = new MenuItem();
                     addFailureMI.Header = $"Add Failure to {addiction.Title}";
+                    addFailureMI.Click += (s, a) => addFailure(addiction);
 
                     var editAddictionMI = new MenuItem();
                     editAddictionMI.Header = $"Edit {addiction.Title}";
+                    editAddictionMI.Click += (s, a) => editAddition(
+                        addiction,
+                        addictionLabel
+                    );
 
                     var deleteAddictionMI = new MenuItem();
                     deleteAddictionMI.Header = $"Delete {addiction.Title}";
+                    deleteAddictionMI.Click += (s, a) => removeAddiction(
+                        Grid.GetRow(border) - 1
+                    );
 
                     var moveUpMI = new MenuItem();
                     moveUpMI.Header = "Move Up";
@@ -232,7 +331,7 @@ public partial class MainWindow : Window
                     moveDownMI.Header = "Move Down";
                     moveDownMI.Click += (s, a) => moveDown(Grid.GetRow(border));
 
-                    editButton.ContextMenu = new ContextMenu()
+                    border.ContextMenu = new ContextMenu()
                     {
                         Items = new Control[]
                         {
@@ -244,7 +343,7 @@ public partial class MainWindow : Window
                             new MenuItem() { Header = "Close Menu" }
                         },
                     };
-                    editButton.Click += (s, a) => editButton.ContextMenu.Open();
+                    border.Tapped += (s, a) => border.ContextMenu.Open();
                 }
             }
 
@@ -262,24 +361,7 @@ public partial class MainWindow : Window
                 failures.Orientation = Avalonia.Layout.Orientation.Horizontal;
                 border.Child = failures;
 
-                // TODAY
-                {
-                    var todayArea = new Rectangle();
-                    todayArea.Width = dayWidth + 1;
-                    failures.Children.Add(todayArea);
-
-                    var latestFailure = addiction.Failures.Min?.FailedAt;
-                    if (latestFailure != null && latestFailure.Equals(dateNow))
-                    {
-                        todayArea.Fill = new SolidColorBrush(Color.Parse("Red"));
-                    }
-                    else
-                    {
-                        todayArea.Fill = new SolidColorBrush(Color.Parse("Green"));
-                    }
-                }
-
-                var previousFailureDate = dateNow;
+                var previousFailureDate = dateNow.AddDays(1);
                 foreach (var failure in addiction.Failures)
                 {
                     var abstinenceDays = previousFailureDate
@@ -300,7 +382,11 @@ public partial class MainWindow : Window
                     var failureBorder = new Border();
                     failureBorder.BorderBrush = new SolidColorBrush(Color.Parse("Black"));
                     failureBorder.BorderThickness = new Avalonia.Thickness(1, 0, 0, 0);
-                    failureBorder.SetValue(ToolTip.TipProperty, $"At {failure.FailedAt.ToString("yyyy-MM-dd")} failed {addiction.Title}");
+                    failureBorder.SetValue(
+                        ToolTip.TipProperty,
+                        $@"At {failure.FailedAt.ToString("yyyy-MM-dd")} failed {addiction.Title}
+{failure.Note}".Trim()
+);
                     failureBorder.SetValue(ToolTip.ShowDelayProperty, 15);
                     failures.Children.Add(failureBorder);
 
@@ -308,6 +394,34 @@ public partial class MainWindow : Window
                     failureArea.Width = dayWidth;
                     failureArea.Fill = new SolidColorBrush(Color.Parse("Red"));
                     failureBorder.Child = failureArea;
+
+                    // Context Menu
+                    {
+                        var editFailureMI = new MenuItem();
+                        editFailureMI.Header = $"Edit";
+                        editFailureMI.Click += (s, a) => editFailure(
+                            addiction,
+                            failure
+                        );
+
+                        var deleteFailureMI = new MenuItem();
+                        deleteFailureMI.Header = $"Delete";
+                        deleteFailureMI.Click += (s, a) => deleteFailure(
+                            addiction,
+                            failure
+                        );
+
+                        failureBorder.ContextMenu = new ContextMenu()
+                        {
+                            Items = new Control[]
+                            {
+                                editFailureMI,
+                                deleteFailureMI,
+                                new MenuItem() { Header = "Close Menu" }
+                            },
+                        };
+                        failureBorder.Tapped += (s, a) => failureBorder.ContextMenu.Open();
+                    }
                 }
             }
         }
@@ -329,5 +443,20 @@ public static class Extensions
     public static DateTime ToDateTime(this DateOnly d)
     {
         return d.ToDateTime(zeroTime);
+    }
+
+    public static DateTimeOffset ToDateTimeOffset(this DateOnly d)
+    {
+        return new DateTimeOffset(d.ToDateTime());
+    }
+
+    public static DateOnly ToDateOnly(this DateTime dt)
+    {
+        return DateOnly.FromDateTime(dt);
+    }
+
+    public static DateOnly ToDateOnly(this DateTimeOffset dto)
+    {
+        return dto.DateTime.ToDateOnly();
     }
 }

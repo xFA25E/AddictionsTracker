@@ -19,6 +19,18 @@ https://www.reactiveui.net/docs/handbook/view-models/
 * see if you can make a coerce to addiction of addictionvm
 
 * maybe don't use hours and just record dates
+* fix realtive zooming
+* deal with the fact that a date can be after now
+* refactor
+create userControls
+
+see if failure and abstinence should be separate controls
+
+maybe they should be separate and through interface they will be united into
+third one
+* Maybe use Tapped event on addiction title border
+Get rid of hacky button
+* dragndrop for rows
 * try avalonstudio
 https://github.com/VitalElement/AvalonStudio
 this might be good for style development of avalonia

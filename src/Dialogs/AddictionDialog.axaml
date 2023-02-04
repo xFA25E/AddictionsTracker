@@ -1,0 +1,58 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignWidth="460" d:DesignHeight="126"
+    Width="460" Height="126"
+    MaxWidth="460" MinHeight="126"
+    MinWidth="460" MaxHeight="126"
+    SizeToContent="WidthAndHeight"
+    CanResize="True"
+    WindowStartupLocation="CenterOwner"
+    x:Class="AddictionsTracker.Dialogs.AddictionDialog"
+    Title="Addiction"
+    >
+  <Border
+      Margin="10"
+      VerticalAlignment="Stretch"
+      HorizontalAlignment="Stretch"
+      BorderThickness="2"
+      BorderBrush="Black"
+      >
+    <StackPanel>
+      <DockPanel Margin="10">
+        <TextBlock
+            Name="label"
+            DockPanel.Dock="Left"
+            Margin="5,0,5,0"
+            VerticalAlignment="Center"
+            Text="Addiction"
+            />
+        <TextBox
+            Name="textBox"
+            PropertyChanged="textBox_TextPropertyChanged"
+            Margin="5,0,5,0"
+            MinWidth="300"
+            Watermark="Addiction"
+            />
+      </DockPanel>
+      <DockPanel Margin="10">
+        <Button
+            Name="okButton"
+            Click="okButton_Click"
+            Margin="5,0,5,0"
+            Content="Ok"
+            />
+        <Button
+            DockPanel.Dock="Right"
+            Click="cancelButton_Click"
+            Margin="5,0,5,0"
+            HorizontalAlignment="Right"
+            Content="Cancel"
+            />
+      </DockPanel>
+    </StackPanel>
+  </Border>
+</Window>

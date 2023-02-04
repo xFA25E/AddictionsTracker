@@ -1,0 +1,64 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignWidth="800" d:DesignHeight="421"
+    Width="800" Height="421"
+    MaxWidth="800" MinHeight="421"
+    MinWidth="800" MaxHeight="421"
+    SizeToContent="WidthAndHeight"
+    CanResize="True"
+    WindowStartupLocation="CenterOwner"
+    x:Class="AddictionsTracker.Dialogs.FailureDialog"
+    Title="Failure">
+  <Border
+      Margin="10"
+      VerticalAlignment="Stretch"
+      HorizontalAlignment="Stretch"
+      BorderThickness="2"
+      BorderBrush="Black"
+      >
+    <StackPanel>
+      <StackPanel Margin="5" Orientation="Horizontal">
+        <TextBlock
+            Name="textBlock"
+            Margin="5,0,5,0"
+            VerticalAlignment="Center"
+            Text="Failed ADDICTION at"
+            />
+        <DatePicker
+            Name="datePicker"
+            Margin="5,0,5,0"
+            SelectedDateChanged="datePicker_SelectedDateChanged"
+            />
+      </StackPanel>
+      <TextBox
+          Name="textBox"
+          Margin="10,5,10,0"
+          MaxHeight="300"
+          Height="300"
+          AcceptsReturn="True"
+          Watermark="Enter Note"
+          />
+      <DockPanel Margin="10">
+        <Button
+            Name="okButton"
+            Click="okButton_Click"
+            Margin="5,0,5,0"
+            VerticalAlignment="Bottom"
+            Content="Ok"
+            />
+        <Button
+            DockPanel.Dock="Right"
+            Click="cancelButton_Click"
+            Margin="5,0,5,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Content="Cancel"
+            />
+      </DockPanel>
+    </StackPanel>
+  </Border>
+</Window>

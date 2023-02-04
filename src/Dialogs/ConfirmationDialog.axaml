@@ -1,0 +1,50 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignWidth="366" d:DesignHeight="162"
+    Width="366" Height="162"
+    MaxWidth="366" MaxHeight="162"
+    MinWidth="366" MinHeight="162"
+    SizeToContent="WidthAndHeight"
+    CanResize="True"
+    WindowStartupLocation="CenterOwner"
+    x:Class="AddictionsTracker.Dialogs.ConfirmationDialog"
+    Title="Deletion"
+    >
+  <Border
+      Margin="10"
+      VerticalAlignment="Stretch"
+      HorizontalAlignment="Stretch"
+      BorderThickness="2"
+      BorderBrush="Black"
+      >
+    <DockPanel>
+      <TextBlock
+          Name="textBlock"
+          DockPanel.Dock="Top"
+          Margin="10"
+          Text="prompt"
+          TextWrapping="Wrap"
+          />
+      <DockPanel DockPanel.Dock="Bottom" Margin="10">
+        <Button
+            Click="yesButton_Click"
+            Margin="5,0,5,0"
+            VerticalAlignment="Bottom"
+            Content="Yes"
+            />
+        <Button
+            DockPanel.Dock="Right"
+            Click="noButton_Click"
+            Margin="5,0,5,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Content="No"
+            />
+      </DockPanel>
+    </DockPanel>
+  </Border>
+</Window>
