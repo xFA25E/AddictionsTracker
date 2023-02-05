@@ -1,19 +1,40 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace AddictionsTracker.Models;
 
-public class Failure
+public class Failure : INotifyPropertyChanged
 {
     public int Id { get; }
-    public DateOnly FailedAt { get; set; }
-    public string Note { get; set; }
+    DateOnly failedAt;
+    string note;
 
     public Failure(int id, DateOnly failedAt, string note)
     {
         Id = id;
-        FailedAt = failedAt;
-        Note = note;
+        this.failedAt = failedAt;
+        this.note = note;
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public DateOnly FailedAt {
+        get => failedAt;
+        set
+        {
+            failedAt = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FailedAt)));
+        }
+    }
+
+    public string Note {
+        get => note;
+        set
+        {
+            note = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Note)));
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 using Avalonia.Controls;
-using AddictionsTracker.Services;
+using AddictionsTracker.Controls;
 using AddictionsTracker.Dialogs;
+using AddictionsTracker.Services;
 using Avalonia.Controls.Primitives;
 using System;
 using System.Collections.Generic;
@@ -37,6 +38,8 @@ public partial class MainWindow : Window
 
     void zoom(int delta)
     {
+        DayWidth.Instance.Width += delta;
+
         Grid aGrid = addictionsGrid;
         int newDayWidth = Math.Max(dayWidth + delta, 2);
         if (dayWidth == newDayWidth) return;
@@ -56,20 +59,6 @@ public partial class MainWindow : Window
                     else if (s is TextBlock label)
                     {
                         label.SetValue(Canvas.LeftProperty, label.GetValue(Canvas.LeftProperty) / (dayWidth + 1) * (newDayWidth + 1));
-                    }
-                }
-            }
-            else if (c.Classes.Contains("failures"))
-            {
-                foreach (var f in ((StackPanel) ((Border) c).Child).Children)
-                {
-                    if (f is Rectangle rect)
-                    {
-                        rect.Width = rect.Width / (dayWidth + 1) * (newDayWidth + 1);
-                    }
-                    else if (f is Border b)
-                    {
-                        ((Rectangle) b.Child).Width = ((Rectangle) b.Child).Width / dayWidth * newDayWidth;
                     }
                 }
             }
@@ -179,7 +168,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void editFailure(Addiction addiction, Failure failure)
+    private async void updateFailure(Addiction addiction, Failure failure)
     {
         var dialog = new FailureDialog(
             addiction.Title,
@@ -262,7 +251,7 @@ public partial class MainWindow : Window
                      date > minDate;
                      date = date.AddMonths(-1))
                 {
-                    var left = dateNow.Subtract(date).TotalDays * (dayWidth + 1);
+                    var left = dateNow.Subtract(date) * (dayWidth + 1);
 
                     var label = new TextBlock();
                     label.Text = date.ToString("MM/yy");
@@ -364,64 +353,16 @@ public partial class MainWindow : Window
                 var previousFailureDate = dateNow.AddDays(1);
                 foreach (var failure in addiction.Failures)
                 {
-                    var abstinenceDays = previousFailureDate
-                        .Subtract(failure.FailedAt)
-                        .TotalDays - 1;
+                    failures.Children.Add(
+                        new FailureControl(
+                            addiction,
+                            failure,
+                            previousFailureDate,
+                            () => updateFailure(addiction, failure),
+                            () => deleteFailure(addiction, failure)
+                        )
+                    );
                     previousFailureDate = failure.FailedAt;
-
-                    if (abstinenceDays != 0)
-                    {
-                        var abstinenceArea = new Rectangle();
-                        abstinenceArea.Width = abstinenceDays * (dayWidth + 1);
-                        abstinenceArea.Fill = new SolidColorBrush(Color.Parse("Green"));
-                        abstinenceArea.SetValue(ToolTip.TipProperty, $"Abstained for {abstinenceDays} day{(abstinenceDays == 1 ? "" : "s")} from {addiction.Title}");
-                        abstinenceArea.SetValue(ToolTip.ShowDelayProperty, 15);
-                        failures.Children.Add(abstinenceArea);
-                    }
-
-                    var failureBorder = new Border();
-                    failureBorder.BorderBrush = new SolidColorBrush(Color.Parse("Black"));
-                    failureBorder.BorderThickness = new Avalonia.Thickness(1, 0, 0, 0);
-                    failureBorder.SetValue(
-                        ToolTip.TipProperty,
-                        $@"At {failure.FailedAt.ToString("yyyy-MM-dd")} failed {addiction.Title}
-{failure.Note}".Trim()
-);
-                    failureBorder.SetValue(ToolTip.ShowDelayProperty, 15);
-                    failures.Children.Add(failureBorder);
-
-                    var failureArea = new Rectangle();
-                    failureArea.Width = dayWidth;
-                    failureArea.Fill = new SolidColorBrush(Color.Parse("Red"));
-                    failureBorder.Child = failureArea;
-
-                    // Context Menu
-                    {
-                        var editFailureMI = new MenuItem();
-                        editFailureMI.Header = $"Edit";
-                        editFailureMI.Click += (s, a) => editFailure(
-                            addiction,
-                            failure
-                        );
-
-                        var deleteFailureMI = new MenuItem();
-                        deleteFailureMI.Header = $"Delete";
-                        deleteFailureMI.Click += (s, a) => deleteFailure(
-                            addiction,
-                            failure
-                        );
-
-                        failureBorder.ContextMenu = new ContextMenu()
-                        {
-                            Items = new Control[]
-                            {
-                                editFailureMI,
-                                deleteFailureMI,
-                                new MenuItem() { Header = "Close Menu" }
-                            },
-                        };
-                        failureBorder.Tapped += (s, a) => failureBorder.ContextMenu.Open();
-                    }
                 }
             }
         }
@@ -434,9 +375,9 @@ public static class Extensions
 {
     static readonly TimeOnly zeroTime = new TimeOnly(0, 0, 0);
 
-    public static TimeSpan Subtract(this DateOnly a, DateOnly b)
+    public static int Subtract(this DateOnly a, DateOnly b)
     {
-        return a.ToDateTime() - b.ToDateTime();
+        return (int)(a.ToDateTime() - b.ToDateTime()).TotalDays;
 
     }
 

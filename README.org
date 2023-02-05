@@ -32,7 +32,7 @@ third one
 Get rid of hacky button
 * dragndrop for rows
 * save order to database
-* focus elements right in dialogs
+* focus elements right in dialogs and handle enter in textboxes
 * When editing addiction title, it is not changed in notes
 use notifypropertychanged?
 * try avalonstudio

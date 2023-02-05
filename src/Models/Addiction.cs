@@ -1,12 +1,12 @@
-using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace AddictionsTracker.Models;
 
-public class Addiction
+public class Addiction : INotifyPropertyChanged
 {
     public int Id { get; }
-    public string Title { get; set; }
+    string title;
 
     public SortedSet<Failure> Failures { get; } =
         new(new DescendingFailureComparer());
@@ -14,6 +14,17 @@ public class Addiction
     public Addiction(int id, string title)
     {
         Id = id;
-        Title = title;
+        this.title = title;
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public string Title {
+        get => title;
+        set
+        {
+            title = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
+        }
     }
 }

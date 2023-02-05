@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="AddictionsTracker.Controls.FailureControl">
+  <StackPanel Orientation="Horizontal">
+    <Rectangle
+        IsVisible="{Binding !!AbstinenceWidth}"
+        Width="{Binding AbstinenceWidth}"
+        Fill="Green"
+        ToolTip.Tip="{Binding AbstinenceTooltip}"
+        ToolTip.ShowDelay="15"
+        />
+    <Border
+        Tapped="border_Tapped"
+        BorderBrush="Black"
+        BorderThickness="1,0,0,0"
+        ToolTip.ShowDelay="15"
+        >
+      <ToolTip.Tip>
+        <StackPanel>
+          <TextBlock Text="{Binding FailureTooltipHeader}"/>
+          <TextBlock Text="{Binding FailureTooltipNote}"/>
+        </StackPanel>
+      </ToolTip.Tip>
+      <Border.ContextMenu>
+        <ContextMenu>
+          <MenuItem Header="Edit" Command="{Binding Update}"/>
+          <MenuItem Header="Remove" Command="{Binding Delete}"/>
+          <MenuItem Header="Close Menu"/>
+        </ContextMenu>
+      </Border.ContextMenu>
+      <Rectangle Width="{Binding FailureWidth}" Fill="Red"/>
+    </Border>
+  </StackPanel>
+</UserControl>
