@@ -9,25 +9,42 @@
         IsVisible="{Binding !!AbstinenceWidth}"
         Width="{Binding AbstinenceWidth}"
         Fill="Green"
-        ToolTip.Tip="{Binding AbstinenceTooltip}"
         ToolTip.ShowDelay="15"
-        />
+        >
+      <ToolTip.Tip>
+        <TextBlock>
+          <TextBlock.Text>
+            <MultiBinding StringFormat="Abstained for {0} days from {1}">
+              <Binding Path="AbstinenceDays"/>
+              <Binding Path="Addiction.Title"/>
+            </MultiBinding>
+          </TextBlock.Text>
+        </TextBlock>
+      </ToolTip.Tip>
+    </Rectangle>
     <Border
-        Tapped="border_Tapped"
+        Name="border"
         BorderBrush="Black"
         BorderThickness="1,0,0,0"
         ToolTip.ShowDelay="15"
         >
       <ToolTip.Tip>
         <StackPanel>
-          <TextBlock Text="{Binding FailureTooltipHeader}"/>
-          <TextBlock Text="{Binding FailureTooltipNote}"/>
+          <TextBlock>
+            <TextBlock.Text>
+              <MultiBinding StringFormat="At {0:yyyy-MM-dd} failed {1}">
+                <Binding Path="Failure.FailedAt" />
+                <Binding Path="Addiction.Title"/>
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
+          <TextBlock Text="{Binding Failure.Note}"/>
         </StackPanel>
       </ToolTip.Tip>
       <Border.ContextMenu>
         <ContextMenu>
-          <MenuItem Header="Edit" Command="{Binding Update}"/>
-          <MenuItem Header="Remove" Command="{Binding Delete}"/>
+          <MenuItem Name="edit" Header="Edit"/>
+          <MenuItem Name="remove" Header="Remove"/>
           <MenuItem Header="Close Menu"/>
         </ContextMenu>
       </Border.ContextMenu>

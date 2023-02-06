@@ -20,7 +20,7 @@ https://www.reactiveui.net/docs/handbook/view-models/
 
 * maybe don't use hours and just record dates
 * fix realtive zooming
-* deal with the fact that a date can be after now
+* disallow date after now in database and everywhere
 * refactor
 create userControls
 
@@ -35,6 +35,12 @@ Get rid of hacky button
 * focus elements right in dialogs and handle enter in textboxes
 * When editing addiction title, it is not changed in notes
 use notifypropertychanged?
+* optimizations
+- invoke property changed only if the value was changed
+- Instead of doing Addiction.UpdateFailure subscribe to changes on FailedAt in insert
+- see where to use batch update
+* make global now
+subscribe to updates of it
 * try avalonstudio
 https://github.com/VitalElement/AvalonStudio
 this might be good for style development of avalonia

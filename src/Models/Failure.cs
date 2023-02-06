@@ -23,8 +23,11 @@ public class Failure : INotifyPropertyChanged
         get => failedAt;
         set
         {
-            failedAt = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FailedAt)));
+            if (!failedAt.Equals(value))
+            {
+                failedAt = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FailedAt)));
+            }
         }
     }
 
@@ -32,8 +35,11 @@ public class Failure : INotifyPropertyChanged
         get => note;
         set
         {
-            note = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Note)));
+            if (!note.Equals(value))
+            {
+                note = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Note)));
+            }
         }
     }
 }

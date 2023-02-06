@@ -23,25 +23,25 @@
       >
     <DockPanel>
       <TextBlock
+          Name="prompt"
           DockPanel.Dock="Top"
           Margin="10"
           TextWrapping="Wrap"
-          Text="{Binding Prompt}"
           />
       <DockPanel DockPanel.Dock="Bottom" Margin="10">
         <Button
+            Name="yes"
             Margin="5,0,5,0"
             VerticalAlignment="Bottom"
             Content="Yes"
-            Command="{Binding Yes}"
             />
         <Button
+            Name="no"
             DockPanel.Dock="Right"
             Margin="5,0,5,0"
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"
             Content="No"
-            Command="{Binding No}"
             />
       </DockPanel>
     </DockPanel>

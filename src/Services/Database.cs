@@ -1,8 +1,8 @@
 using AddictionsTracker.Models;
-using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
 using System.IO;
 using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace AddictionsTracker.Services;
@@ -17,10 +17,8 @@ public class Database
         ExecuteNonQuery(Queries.CreateTables);
     }
 
-    public List<Addiction> GetAddictions()
+    public void PopulateAddictions(ObservableCollection<Addiction> addictions)
     {
-        var addictions = new Dictionary<int, Addiction>();
-
         ExecuteReader(
             Queries.GetAddictions,
             reader =>
@@ -29,7 +27,7 @@ public class Database
                 {
                     var id = reader.GetInt32(0);
                     var title = reader.GetString(1);
-                    addictions.Add(id, new Addiction(id, title));
+                    addictions.Add(new Addiction(id, title));
                 };
             }
         );
@@ -41,17 +39,17 @@ public class Database
                 while (reader.Read())
                 {
                     var id = reader.GetInt32(0);
-                    var failedAt = reader.GetDateTime(1);
+                    var failedAt = reader.GetDateTime(1).ToDateOnly();
                     var note = reader.GetString(2);
                     var addictionId = reader.GetInt32(3);
 
-                    var failure = new Failure(id, DateOnly.FromDateTime(failedAt), note);
-                    addictions[addictionId].Failures.Add(failure);
+                    var failure = new Failure(id, failedAt, note);
+                    addictions
+                        .Single(a => a.Id == addictionId)
+                        .InsertFailure(failure);
                 }
             }
         );
-
-        return addictions.Values.ToList();
     }
 
     public Addiction InsertAddiction(string addictionTitle)

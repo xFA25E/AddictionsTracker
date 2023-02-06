@@ -6,28 +6,25 @@
         x:Class="AddictionsTracker.MainWindow"
         Title="AddictionsTracker"
         MinWidth="1024" MinHeight="800" Width="1024" Height="800" WindowStartupLocation="CenterScreen">
-  <ScrollViewer
-      Name="scrViewer"
-      HorizontalScrollBarVisibility="Auto"
-      >
-    <!-- DockPanel.Dock="Bottom" -->
+  <ScrollViewer HorizontalScrollBarVisibility="Auto">
     <Grid
-        Name="addictionsGrid"
+        Name="grid"
         ColumnDefinitions="Auto,Auto"
+        RowDefinitions="Auto"
         VerticalAlignment="Stretch"
         HorizontalAlignment="Stretch"
         Background="White"
-        PointerWheelChanged="addictionsGrid_PointerWheelChanged"
-        />
+        PointerWheelChanged="grid_PointerWheelChanged"
+        >
+      <Border BorderBrush="Black" BorderThickness="0,0,1,1">
+        <Button
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            HorizontalContentAlignment="Center"
+            Click="insertAddiction"
+            Content="Add Addiction"
+            />
+      </Border>
+    </Grid>
   </ScrollViewer>
-
-  <!-- <DockPanel VerticalAlignment="Stretch"> -->
-  <!--   <!-\- <ScrollBar Name="scrFailuresPos" -\-> -->
-  <!--   <!-\-            DockPanel.Dock="Bottom" -\-> -->
-  <!--   <!-\-            Orientation="Horizontal" -\-> -->
-  <!--   <!-\-            VerticalAlignment="Bottom" -\-> -->
-  <!--   <!-\-            HorizontalAlignment="Stretch"/> -\-> -->
-
-
-  <!-- </DockPanel> -->
 </Window>

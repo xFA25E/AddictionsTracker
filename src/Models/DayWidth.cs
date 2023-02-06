@@ -14,7 +14,7 @@ public class DayWidth : INotifyPropertyChanged
         get => width;
         set
         {
-            if (value >= 2)
+            if (width != value && 2 <= value)
             {
                 width = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Width)));

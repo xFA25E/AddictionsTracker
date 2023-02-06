@@ -23,39 +23,34 @@
     <StackPanel>
       <StackPanel Margin="5" Orientation="Horizontal">
         <TextBlock
+            Name="textBlock"
             Margin="5,0,5,0"
             VerticalAlignment="Center"
-            Text="{Binding AddictionTitle, StringFormat='Failed {0} at'}"
             />
-        <DatePicker
-            Name="datePicker"
-            Margin="5,0,5,0"
-            SelectedDateChanged="datePicker_SelectedDateChanged"
-            />
+        <DatePicker Name="datePicker" Margin="5,0,5,0" />
       </StackPanel>
       <TextBox
+          Name="textBox"
           Margin="10,5,10,0"
           MaxHeight="300"
           Height="300"
           AcceptsReturn="True"
           Watermark="Enter Note"
-          Text="{Binding Note}"
           />
       <DockPanel Margin="10">
         <Button
+            Name="ok"
             Margin="5,0,5,0"
             VerticalAlignment="Bottom"
             Content="Ok"
-            IsEnabled="{Binding CanOk}"
-            Command="{Binding OkCommand}"
             />
         <Button
+            Name="cancel"
             DockPanel.Dock="Right"
             Margin="5,0,5,0"
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"
             Content="Cancel"
-            Command="{Binding Cancel}"
             />
       </DockPanel>
     </StackPanel>

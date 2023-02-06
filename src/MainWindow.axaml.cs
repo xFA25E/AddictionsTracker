@@ -2,106 +2,117 @@ using Avalonia.Controls;
 using AddictionsTracker.Controls;
 using AddictionsTracker.Dialogs;
 using AddictionsTracker.Services;
-using Avalonia.Controls.Primitives;
 using System;
-using System.Collections.Generic;
 using AddictionsTracker.Models;
 using Avalonia.Controls.Shapes;
 using Avalonia.Media;
 using Avalonia.Input;
 using System.Linq;
 using Avalonia.Interactivity;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Collections.Generic;
 
 namespace AddictionsTracker;
 
 public partial class MainWindow : Window
 {
     Database database = new Database();
-    int dayWidth = 2;
-
-    List<Addiction> addictions;
+    ObservableCollection<Addiction> addictions = new();
 
     public MainWindow()
     {
-        addictions = database.GetAddictions();
+        addictions.CollectionChanged += addictionsChangedHandler;
+
         InitializeComponent();
-        CreateControls();
+        button.Click += (_, _) => insertAddiction();
+        grid.PointerWheelChanged += (_, a) =>
+        {
+            if (a.KeyModifiers == KeyModifiers.Control)
+                DayWidth.Instance.Width += (int)a.Delta.Y;
+        };
+
+        database.PopulateAddictions(addictions);
     }
 
-    public void addictionsGrid_PointerWheelChanged(object? sender, PointerWheelEventArgs args)
+    private void addictionsChangedHandler(
+        object? sender,
+        NotifyCollectionChangedEventArgs args
+    )
     {
-        if (args.KeyModifiers == KeyModifiers.Control)
+        if (args.Action == NotifyCollectionChangedAction.Add
+            && args.NewItems != null && args.NewItems.Count != 0
+            && args.NewItems[0] is Addiction addiction)
         {
-            zoom((int)args.Delta.Y);
+            var addedRow = args.NewStartingIndex + 1;
+            var addictionControl = new AddictionControl(
+                addiction,
+                insertFailure,
+                updateAddiction,
+                deleteAddiction,
+                moveUpAddiction,
+                moveDownAddiction
+            );
+            var failuresControl = new FailuresControl(
+                addiction,
+                updateFailure,
+                deleteFailure
+            );
+
+            Grid.SetRow(addictionControl, addedRow);
+            Grid.SetRow(failuresControl, addedRow);
+            Grid.SetColumn(failuresControl, 1);
+
+            grid.BeginBatchUpdate();
+            grid.RowDefinitions.Insert(addedRow, new RowDefinition(GridLength.Auto));
+            foreach (Control c in grid.Children)
+            {
+                var row = Grid.GetRow(c);
+                if (addedRow <= row)
+                    Grid.SetRow(c, row + 1);
+            }
+            grid.Children.Add(addictionControl);
+            grid.Children.Add(failuresControl);
+            grid.EndBatchUpdate();
+        }
+        else if (args.Action == NotifyCollectionChangedAction.Remove)
+        {
+            var removedRow = args.OldStartingIndex + 1;
+            var controlsToRemove = new LinkedList<Control>();
+
+            grid.BeginBatchUpdate();
+            foreach (Control c in grid.Children)
+            {
+                var row = Grid.GetRow(c);
+                if (removedRow == row)
+                    controlsToRemove.AddLast(c);
+                else if (removedRow < row)
+                    Grid.SetRow(c, row - 1);
+            }
+            grid.Children.RemoveAll(controlsToRemove);
+            grid.RowDefinitions.RemoveAt(removedRow);
+            grid.EndBatchUpdate();
+        }
+        else if (args.Action == NotifyCollectionChangedAction.Move)
+        {
+            var rowA = args.NewStartingIndex + 1;
+            var rowB = args.OldStartingIndex + 1;
+
+            grid.BeginBatchUpdate();
+            foreach (Control c in grid.Children)
+            {
+                var row = Grid.GetRow(c);
+                if (row == rowA)
+                    Grid.SetRow(c, rowB);
+                else if (row == rowB)
+                    Grid.SetRow(c, rowA);
+            }
+            grid.RowDefinitions.Move(rowA, rowB);
+            grid.EndBatchUpdate();
         }
     }
 
-    void zoom(int delta)
-    {
-        DayWidth.Instance.Width += delta;
-
-        Grid aGrid = addictionsGrid;
-        int newDayWidth = Math.Max(dayWidth + delta, 2);
-        if (dayWidth == newDayWidth) return;
-
-        aGrid.BeginBatchUpdate();
-        foreach (var c in aGrid.Children)
-        {
-            if (c.Classes.Contains("scale"))
-            {
-                foreach (var s in ((Canvas) ((Border) c).Child).Children)
-                {
-                    if (s is Rectangle rect)
-                    {
-                        rect.SetValue(Canvas.LeftProperty, rect.GetValue(Canvas.LeftProperty) / (dayWidth + 1) * (newDayWidth + 1));
-                        rect.Width = newDayWidth;
-                    }
-                    else if (s is TextBlock label)
-                    {
-                        label.SetValue(Canvas.LeftProperty, label.GetValue(Canvas.LeftProperty) / (dayWidth + 1) * (newDayWidth + 1));
-                    }
-                }
-            }
-        }
-        aGrid.EndBatchUpdate();
-
-        dayWidth = newDayWidth;
-    }
-
-    private void swapRows(int rowA, int rowB)
-    {
-        Grid aGrid = addictionsGrid;
-
-        aGrid.BeginBatchUpdate();
-        foreach (Control c in aGrid.Children)
-        {
-            if (Grid.GetRow(c) == rowA)
-            {
-                Grid.SetRow(c, rowB);
-            }
-            else if (Grid.GetRow(c) == rowB)
-            {
-                Grid.SetRow(c, rowA);
-            }
-        }
-        aGrid.EndBatchUpdate();
-
-        var temp = addictions[rowA - 1];
-        addictions[rowA - 1] = addictions[rowB - 1];
-        addictions[rowB - 1] = temp;
-    }
-
-    private void moveUp(int row)
-    {
-        if (row > 1) swapRows(row, row - 1);
-    }
-
-    private void moveDown(int row)
-    {
-        if (row < addictions.Count) swapRows(row, row + 1);
-    }
-
-    private async void addAddiction(object? sender, RoutedEventArgs args)
+    public async void insertAddiction()
     {
         var dialog = new AddictionDialog(
             "Add Addiction",
@@ -111,14 +122,10 @@ public partial class MainWindow : Window
 
         var result = await dialog.ShowDialog<string?>(this);
         if (result != null)
-        {
-            var addiction = database.InsertAddiction(result);
-            addictions.Add(addiction);
-            CreateControls();
-        }
+            addictions.Add(database.InsertAddiction(result));
     }
 
-    private async void editAddition(Addiction addiction, TextBlock label)
+    private async void updateAddiction(Addiction addiction)
     {
         var dialog = new AddictionDialog(
             "Edit Addiction",
@@ -129,28 +136,40 @@ public partial class MainWindow : Window
         );
 
         var result = await dialog.ShowDialog<string?>(this);
-        if (result != null)
+        if (result != null && !result.Equals(addiction.Title))
         {
             database.UpdateAddiction(addiction, result);
             addiction.Title = result;
-            label.Text = result;
         }
     }
 
-    private async void removeAddiction(int index)
+    private async void deleteAddiction(Addiction addiction)
     {
         var dialog = new ConfirmationDialog(
-            $"Are you sure that you want to delete {addictions[index].Title}?"
+            $"Are you sure that you want to delete {addiction.Title}?"
         );
         if (await dialog.ShowDialog<bool>(this))
         {
-            database.DeleteAddiction(addictions[index]);
-            addictions.RemoveAt(index);
-            CreateControls();
+            database.DeleteAddiction(addiction);
+            addictions.Remove(addiction);
         }
     }
 
-    private async void addFailure(Addiction addiction)
+    private void moveUpAddiction(Addiction addiction)
+    {
+        var row = addictions.IndexOf(addiction);
+        if (0 < row)
+            addictions.Move(row, row - 1);
+    }
+
+    private void moveDownAddiction(Addiction addiction)
+    {
+        var row = addictions.IndexOf(addiction);
+        if (row < addictions.Count - 1)
+            addictions.Move(row, row + 1);
+    }
+
+    private async void insertFailure(Addiction addiction)
     {
         var dialog = new FailureDialog(
             addiction.Title,
@@ -163,8 +182,7 @@ public partial class MainWindow : Window
         {
             var (failedAt, note) = result.Value;
             var failure = database.InsertFailure(addiction, failedAt, note);
-            addiction.Failures.Add(failure);
-            CreateControls();
+            addiction.InsertFailure(failure);
         }
     }
 
@@ -182,12 +200,13 @@ public partial class MainWindow : Window
         if (result != null)
         {
             var (failedAt, note) = result.Value;
-            database.UpdateFailure(failure, failedAt, note);
-            addiction.Failures.Remove(failure);
-            failure.FailedAt = failedAt;
-            failure.Note = note;
-            addiction.Failures.Add(failure);
-            CreateControls();
+            if (!(failedAt.Equals(failure.FailedAt)
+                  && note.Equals(failure.Note)))
+            {
+                database.UpdateFailure(failure, failedAt, note);
+                failure.FailedAt = failedAt;
+                failure.Note = note;
+            }
         }
     }
 
@@ -199,38 +218,20 @@ public partial class MainWindow : Window
         if (await dialog.ShowDialog<bool>(this))
         {
             database.DeleteFailure(failure);
-            addiction.Failures.Remove(failure);
-            CreateControls();
+            addiction.DeleteFailure(failure);
         }
     }
 
     public void CreateControls()
     {
-        Grid aGrid = addictionsGrid;
         var dateNow = DateTime.Now.ToDateOnly();
 
-        aGrid.Children.Clear();
-        aGrid.RowDefinitions.Clear();
+        grid.Children.Clear();
+        grid.RowDefinitions.Clear();
 
-        aGrid.BeginBatchUpdate();
+        grid.BeginBatchUpdate();
 
-        aGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-
-        // ADD ADDICTION
-        {
-            var border = new Border();
-            border.BorderBrush = new SolidColorBrush(Color.Parse("Black"));
-            border.BorderThickness = new Avalonia.Thickness(0, 0, 1, 1);
-            aGrid.Children.Add(border);
-
-            var addAddictionButton = new Button();
-            addAddictionButton.Content = "Add Addiction";
-            addAddictionButton.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
-            addAddictionButton.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
-            addAddictionButton.HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Center;
-            addAddictionButton.Click += addAddiction;
-            border.Child = addAddictionButton;
-        }
+        grid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
 
         // SCALE
         {
@@ -239,19 +240,19 @@ public partial class MainWindow : Window
             border.BorderThickness = new Avalonia.Thickness(0, 0, 0, 1);
             border.Classes.Add("scale");
             border.SetValue(Grid.ColumnProperty, 1);
-            aGrid.Children.Add(border);
+            grid.Children.Add(border);
 
             var scale = new Canvas();
             border.Child = scale;
 
-            var minDate = addictions.Select(a => a.Failures.Max?.FailedAt).Min();
+            var minDate = addictions.Select(a => a.Failures.LastOrDefault()?.FailedAt).Min();
             if (minDate != null)
             {
                 for (DateOnly date = new DateOnly(dateNow.Year, dateNow.Month, 1);
                      date > minDate;
                      date = date.AddMonths(-1))
                 {
-                    var left = dateNow.Subtract(date) * (dayWidth + 1);
+                    var left = dateNow.Subtract(date) * DayWidth.Instance.Width;
 
                     var label = new TextBlock();
                     label.Text = date.ToString("MM/yy");
@@ -263,141 +264,13 @@ public partial class MainWindow : Window
                     var rect = new Rectangle();
                     rect.SetValue(Canvas.TopProperty, 20);
                     rect.SetValue(Canvas.LeftProperty, left);
-                    rect.Width = dayWidth;
+                    rect.Width = DayWidth.Instance.Width;
                     rect.Height = 10;
                     rect.Fill = new SolidColorBrush(Color.Parse("Black"));
                     scale.Children.Add(rect);
                 }
             }
         }
-
-        // ADDICTIONS AND FAILURES
-
-        int row = 0;
-        foreach (var addiction in addictions)
-        {
-            row++;
-            aGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-
-            // ADDICTION
-            {
-                var border = new Border();
-                border.Background = new SolidColorBrush(Color.Parse("White"));
-                border.BorderBrush = new SolidColorBrush(Color.Parse("Black"));
-                border.BorderThickness = new Avalonia.Thickness(0, 0, 1, 1);
-                border.SetValue(Grid.RowProperty, row);
-                aGrid.Children.Add(border);
-
-                var addictionLabel = new TextBlock();
-                addictionLabel.Text = addiction.Title;
-                addictionLabel.Padding = new Avalonia.Thickness(8);
-                border.Child = addictionLabel;
-
-                // Context Menu
-                {
-                    var addFailureMI = new MenuItem();
-                    addFailureMI.Header = $"Add Failure to {addiction.Title}";
-                    addFailureMI.Click += (s, a) => addFailure(addiction);
-
-                    var editAddictionMI = new MenuItem();
-                    editAddictionMI.Header = $"Edit {addiction.Title}";
-                    editAddictionMI.Click += (s, a) => editAddition(
-                        addiction,
-                        addictionLabel
-                    );
-
-                    var deleteAddictionMI = new MenuItem();
-                    deleteAddictionMI.Header = $"Delete {addiction.Title}";
-                    deleteAddictionMI.Click += (s, a) => removeAddiction(
-                        Grid.GetRow(border) - 1
-                    );
-
-                    var moveUpMI = new MenuItem();
-                    moveUpMI.Header = "Move Up";
-                    moveUpMI.Click += (s, a) => moveUp(Grid.GetRow(border));
-
-                    var moveDownMI = new MenuItem();
-                    moveDownMI.Header = "Move Down";
-                    moveDownMI.Click += (s, a) => moveDown(Grid.GetRow(border));
-
-                    border.ContextMenu = new ContextMenu()
-                    {
-                        Items = new Control[]
-                        {
-                            addFailureMI,
-                            editAddictionMI,
-                            deleteAddictionMI,
-                            moveUpMI,
-                            moveDownMI,
-                            new MenuItem() { Header = "Close Menu" }
-                        },
-                    };
-                    border.Tapped += (s, a) => border.ContextMenu.Open();
-                }
-            }
-
-            // FAILURES
-            {
-                var border = new Border();
-                border.BorderBrush = new SolidColorBrush(Color.Parse("Black"));
-                border.BorderThickness = new Avalonia.Thickness(0, 0, 0, 1);
-                border.Classes.Add("failures");
-                border.SetValue(Grid.RowProperty, row);
-                border.SetValue(Grid.ColumnProperty, 1);
-                aGrid.Children.Add(border);
-
-                var failures = new StackPanel();
-                failures.Orientation = Avalonia.Layout.Orientation.Horizontal;
-                border.Child = failures;
-
-                var previousFailureDate = dateNow.AddDays(1);
-                foreach (var failure in addiction.Failures)
-                {
-                    failures.Children.Add(
-                        new FailureControl(
-                            addiction,
-                            failure,
-                            previousFailureDate,
-                            () => updateFailure(addiction, failure),
-                            () => deleteFailure(addiction, failure)
-                        )
-                    );
-                    previousFailureDate = failure.FailedAt;
-                }
-            }
-        }
-
-        aGrid.EndBatchUpdate();
-    }
-}
-
-public static class Extensions
-{
-    static readonly TimeOnly zeroTime = new TimeOnly(0, 0, 0);
-
-    public static int Subtract(this DateOnly a, DateOnly b)
-    {
-        return (int)(a.ToDateTime() - b.ToDateTime()).TotalDays;
-
-    }
-
-    public static DateTime ToDateTime(this DateOnly d)
-    {
-        return d.ToDateTime(zeroTime);
-    }
-
-    public static DateTimeOffset ToDateTimeOffset(this DateOnly d)
-    {
-        return new DateTimeOffset(d.ToDateTime());
-    }
-
-    public static DateOnly ToDateOnly(this DateTime dt)
-    {
-        return DateOnly.FromDateTime(dt);
-    }
-
-    public static DateOnly ToDateOnly(this DateTimeOffset dto)
-    {
-        return dto.DateTime.ToDateOnly();
+        grid.EndBatchUpdate();
     }
 }
