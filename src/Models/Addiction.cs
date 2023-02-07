@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
@@ -24,12 +25,16 @@ public class Addiction : INotifyPropertyChanged
     {
         var i = search(failure);
         var isNotFound = int.IsNegative(i);
-        if (isNotFound)
-        {
-            Failures.Insert(~i, failure);
-            failure.PropertyChanged += failureChangedHandler;
-        }
+        if (isNotFound) Failures.Insert(~i, failure);
         return isNotFound;
+    }
+
+    public void UpdateFailure(Failure failure, DateOnly failedAt, string note)
+    {
+        if (!DeleteFailure(failure)) return;
+        failure.FailedAt = failedAt;
+        failure.Note = note;
+        Failures.Insert(~search(failure), failure);
     }
 
     public bool DeleteFailure(Failure failure)
@@ -38,20 +43,6 @@ public class Addiction : INotifyPropertyChanged
         var isFound = !int.IsNegative(i);
         if (isFound) Failures.RemoveAt(i);
         return isFound;
-    }
-
-    void failureChangedHandler(
-        object? sender,
-        PropertyChangedEventArgs args
-    )
-    {
-        if (
-            sender is Failure failure
-            && args.PropertyName is string property
-            && property.Equals(nameof(failure.FailedAt))
-            && DeleteFailure(failure)
-        )
-            Failures.Insert(~search(failure), failure);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

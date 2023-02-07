@@ -14,14 +14,13 @@
         VerticalAlignment="Stretch"
         HorizontalAlignment="Stretch"
         Background="White"
-        PointerWheelChanged="grid_PointerWheelChanged"
         >
       <Border BorderBrush="Black" BorderThickness="0,0,1,1">
         <Button
+            Name="button"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
             HorizontalContentAlignment="Center"
-            Click="insertAddiction"
             Content="Add Addiction"
             />
       </Border>

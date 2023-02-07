@@ -8,7 +8,6 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Media;
 using Avalonia.Input;
 using System.Linq;
-using Avalonia.Interactivity;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Collections.Generic;
@@ -25,12 +24,17 @@ public partial class MainWindow : Window
         addictions.CollectionChanged += addictionsChangedHandler;
 
         InitializeComponent();
+
         button.Click += (_, _) => insertAddiction();
         grid.PointerWheelChanged += (_, a) =>
         {
             if (a.KeyModifiers == KeyModifiers.Control)
                 DayWidth.Instance.Width += (int)a.Delta.Y;
         };
+
+        var scale = new ScaleControl(addictions);
+        Grid.SetColumn(scale, 1);
+        grid.Children.Add(scale);
 
         database.PopulateAddictions(addictions);
     }
@@ -204,8 +208,7 @@ public partial class MainWindow : Window
                   && note.Equals(failure.Note)))
             {
                 database.UpdateFailure(failure, failedAt, note);
-                failure.FailedAt = failedAt;
-                failure.Note = note;
+                addiction.UpdateFailure(failure, failedAt, note);
             }
         }
     }
@@ -220,57 +223,5 @@ public partial class MainWindow : Window
             database.DeleteFailure(failure);
             addiction.DeleteFailure(failure);
         }
-    }
-
-    public void CreateControls()
-    {
-        var dateNow = DateTime.Now.ToDateOnly();
-
-        grid.Children.Clear();
-        grid.RowDefinitions.Clear();
-
-        grid.BeginBatchUpdate();
-
-        grid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-
-        // SCALE
-        {
-            var border = new Border();
-            border.BorderBrush = new SolidColorBrush(Color.Parse("Black"));
-            border.BorderThickness = new Avalonia.Thickness(0, 0, 0, 1);
-            border.Classes.Add("scale");
-            border.SetValue(Grid.ColumnProperty, 1);
-            grid.Children.Add(border);
-
-            var scale = new Canvas();
-            border.Child = scale;
-
-            var minDate = addictions.Select(a => a.Failures.LastOrDefault()?.FailedAt).Min();
-            if (minDate != null)
-            {
-                for (DateOnly date = new DateOnly(dateNow.Year, dateNow.Month, 1);
-                     date > minDate;
-                     date = date.AddMonths(-1))
-                {
-                    var left = dateNow.Subtract(date) * DayWidth.Instance.Width;
-
-                    var label = new TextBlock();
-                    label.Text = date.ToString("MM/yy");
-                    label.FontFamily = new FontFamily("monospace");
-                    label.SetValue(Canvas.TopProperty, 0);
-                    label.SetValue(Canvas.LeftProperty, left);
-                    scale.Children.Add(label);
-
-                    var rect = new Rectangle();
-                    rect.SetValue(Canvas.TopProperty, 20);
-                    rect.SetValue(Canvas.LeftProperty, left);
-                    rect.Width = DayWidth.Instance.Width;
-                    rect.Height = 10;
-                    rect.Fill = new SolidColorBrush(Color.Parse("Black"));
-                    scale.Children.Add(rect);
-                }
-            }
-        }
-        grid.EndBatchUpdate();
     }
 }
