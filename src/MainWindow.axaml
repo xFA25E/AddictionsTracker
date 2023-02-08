@@ -15,15 +15,16 @@
         HorizontalAlignment="Stretch"
         Background="White"
         >
-      <Border BorderBrush="Black" BorderThickness="0,0,1,1">
-        <Button
-            Name="button"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch"
-            HorizontalContentAlignment="Center"
-            Content="Add Addiction"
-            />
-      </Border>
+      <Button
+          Name="button"
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch"
+          HorizontalContentAlignment="Center"
+          CornerRadius="0"
+          BorderBrush="Black"
+          BorderThickness="0,0,1,1"
+          Content="Add Addiction"
+          />
     </Grid>
   </ScrollViewer>
 </Window>

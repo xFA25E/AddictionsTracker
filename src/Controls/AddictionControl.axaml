@@ -4,22 +4,25 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AddictionsTracker.Controls.AddictionControl">
-  <Border
-      Tapped="border_Tapped"
-      Background="White"
+  <Button
+      Name="button"
+      HorizontalAlignment="Stretch"
+      VerticalAlignment="Stretch"
+      HorizontalContentAlignment="Right"
+      CornerRadius="0"
       BorderBrush="Black"
       BorderThickness="0,0,1,1"
+      Content="{Binding Title}"
       >
-    <Border.ContextMenu>
+    <Button.ContextMenu>
       <ContextMenu>
-        <MenuItem Header="Add Failure" Command="{Binding InsertFailureCommand}"/>
-        <MenuItem Header="Edit" Command="{Binding UpdateCommand}"/>
-        <MenuItem Header="Delete" Command="{Binding DeleteCommand}"/>
-        <MenuItem Header="Move Up" Command="{Binding MoveUpCommand}"/>
-        <MenuItem Header="Move Down" Command="{Binding MoveDownCommand}"/>
+        <MenuItem Name="addMI" Header="Add Failure"/>
+        <MenuItem Name="editMI" Header="Edit"/>
+        <MenuItem Name="removeMI" Header="Remove"/>
+        <MenuItem Name="moveUpMI" Header="Move Up"/>
+        <MenuItem Name="moveDownMI" Header="Move Down"/>
         <MenuItem Header="Close Menu"/>
       </ContextMenu>
-    </Border.ContextMenu>
-    <TextBlock Padding="8" Text="{Binding Title}"/>
-  </Border>
+    </Button.ContextMenu>
+  </Button>
 </UserControl>

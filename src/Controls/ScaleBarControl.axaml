@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AddictionsTracker.Controls.ScaleBarControl"
-             Canvas.Top="20"
+             Canvas.Top="17"
              Canvas.Left="{Binding Left}"
              >
-  <Rectangle Width="{Binding DayWidth.Width}" Height="10" Fill="Black"/>
+  <Rectangle Width="{Binding DayWidth.Width}" Height="14" Fill="Black"/>
 </UserControl>

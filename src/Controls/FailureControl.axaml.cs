@@ -24,7 +24,7 @@ public partial class FailureControl : UserControl
 
         edit.Click += (_, _) => update(addiction, failure);
         remove.Click += (_, _) => delete(addiction, failure);
-        border.Tapped += (_, _) => border.ContextMenu?.Open();
+        button.Tapped += (_, _) => button.ContextMenu?.Open();
     }
 }
 

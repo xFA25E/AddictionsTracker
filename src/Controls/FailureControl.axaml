@@ -22,10 +22,14 @@
         </TextBlock>
       </ToolTip.Tip>
     </Rectangle>
-    <Border
-        Name="border"
+    <Button
+        Name="button"
         BorderBrush="Black"
         BorderThickness="1,0,0,0"
+        Width="{Binding FailureWidth}"
+        CornerRadius="0"
+        Padding="0"
+        VerticalAlignment="Stretch"
         ToolTip.ShowDelay="15"
         >
       <ToolTip.Tip>
@@ -41,14 +45,13 @@
           <TextBlock Text="{Binding Failure.Note}"/>
         </StackPanel>
       </ToolTip.Tip>
-      <Border.ContextMenu>
+      <Button.ContextMenu>
         <ContextMenu>
           <MenuItem Name="edit" Header="Edit"/>
           <MenuItem Name="remove" Header="Remove"/>
           <MenuItem Header="Close Menu"/>
         </ContextMenu>
-      </Border.ContextMenu>
-      <Rectangle Width="{Binding FailureWidth}" Fill="Red"/>
-    </Border>
+      </Button.ContextMenu>
+    </Button>
   </StackPanel>
 </UserControl>
