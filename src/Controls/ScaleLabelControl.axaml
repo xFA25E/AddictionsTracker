@@ -8,6 +8,7 @@
              Canvas.Left="{Binding Left}"
              >
   <TextBlock
+      Foreground="#111f16"
       FontFamily="monospace"
       Text="{Binding Date, StringFormat='{}{0:MMM yy}'}"
       />

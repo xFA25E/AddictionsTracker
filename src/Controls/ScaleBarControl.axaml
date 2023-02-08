@@ -7,5 +7,5 @@
              Canvas.Top="17"
              Canvas.Left="{Binding Left}"
              >
-  <Rectangle Width="{Binding DayWidth.Width}" Height="14" Fill="Black"/>
+  <Rectangle Width="{Binding DayWidth.Width}" Height="14" Fill="#111f16"/>
 </UserControl>

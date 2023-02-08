@@ -5,10 +5,20 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AddictionsTracker.Controls.FailureControl">
   <StackPanel Orientation="Horizontal">
+    <StackPanel.Styles>
+      <Style Selector="Button">
+        <Setter Property="Background" Value="#ba4331"/>
+        <Setter Property="BorderBrush" Value="#111f16"/>
+      </Style>
+      <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#6d4331"/>
+        <Setter Property="BorderBrush" Value="#111f16"/>
+      </Style>
+    </StackPanel.Styles>
     <Rectangle
         IsVisible="{Binding !!AbstinenceWidth}"
         Width="{Binding AbstinenceWidth}"
-        Fill="Green"
+        Fill="#8e9d57"
         ToolTip.ShowDelay="15"
         >
       <ToolTip.Tip>
@@ -24,9 +34,8 @@
     </Rectangle>
     <Button
         Name="button"
-        BorderBrush="Black"
         BorderThickness="1,0,0,0"
-        Width="{Binding FailureWidth}"
+        Width="{Binding DayWidth.Width}"
         CornerRadius="0"
         Padding="0"
         VerticalAlignment="Stretch"

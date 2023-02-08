@@ -13,13 +13,14 @@
     WindowStartupLocation="CenterOwner"
     x:Class="AddictionsTracker.Dialogs.AddictionDialog"
     Title="Addiction"
+    Background="#f2efdb"
     >
   <Border
       Margin="10"
       VerticalAlignment="Stretch"
       HorizontalAlignment="Stretch"
       BorderThickness="2"
-      BorderBrush="Black"
+      BorderBrush="#111f16"
       >
     <StackPanel>
       <DockPanel Margin="10">
@@ -27,22 +28,35 @@
             Name="textBlock"
             DockPanel.Dock="Left"
             Margin="5,0,5,0"
+            Foreground="#111f16"
             VerticalAlignment="Center"
             />
         <TextBox
             Name="textBox"
             Margin="5,0,5,0"
             MinWidth="300"
+            Foreground="#111f16"
             Watermark="Addiction"
             />
       </DockPanel>
       <DockPanel Margin="10">
-        <Button Name="ok" Margin="5,0,5,0" Content="Ok" />
+        <DockPanel.Styles>
+          <Style Selector="Button">
+            <Setter Property="Background" Value="#dae3c6"/>
+            <Setter Property="BorderBrush" Value="#111f16"/>
+          </Style>
+          <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#c0bf87"/>
+            <Setter Property="BorderBrush" Value="#111f16"/>
+          </Style>
+        </DockPanel.Styles>
+        <Button Name="ok" Foreground="#111f16" Margin="5,0,5,0" Content="Ok" />
         <Button
             Name="cancel"
             DockPanel.Dock="Right"
             Margin="5,0,5,0"
             HorizontalAlignment="Right"
+            Foreground="#111f16"
             Content="Cancel"
             />
       </DockPanel>

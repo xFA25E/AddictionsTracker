@@ -33,9 +33,10 @@ public class FailureControlViewModel : INotifyPropertyChanged
     public Addiction Addiction { get; }
     public Failure Failure { get; }
 
+    public DayWidth DayWidth => Globals.DayWidth;
+
     public int AbstinenceDays => AbstainedUntil.Subtract(Failure.FailedAt) - 1;
-    public int AbstinenceWidth => AbstinenceDays * Globals.DayWidth.Width;
-    public int FailureWidth => Globals.DayWidth.Width - 1;
+    public int AbstinenceWidth => AbstinenceDays * DayWidth.Width;
 
     public FailureControlViewModel(
         Addiction addiction,
@@ -57,7 +58,6 @@ public class FailureControlViewModel : INotifyPropertyChanged
         if (args.PropertyName?.Equals(nameof(Globals.DayWidth.Width)) != null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AbstinenceWidth)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FailureWidth)));
         }
     }
 
