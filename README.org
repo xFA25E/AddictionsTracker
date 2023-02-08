@@ -1,0 +1,8 @@
+#+TITLE: AddictionsTracker
+
+A program that lets you track your addictions.
+
+[[./atracker.png]]
+
+* Build
+Currently a ~nix~ package is provided.
