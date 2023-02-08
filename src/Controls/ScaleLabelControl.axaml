@@ -9,6 +9,6 @@
              >
   <TextBlock
       FontFamily="monospace"
-      Text="{Binding Date, StringFormat='{}{0:MM/yy}'}"
+      Text="{Binding Date, StringFormat='{}{0:MMM yy}'}"
       />
 </UserControl>

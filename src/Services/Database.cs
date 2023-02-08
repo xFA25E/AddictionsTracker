@@ -65,6 +65,9 @@ public class Database
             ("$addiction_title", addictionTitle)
         );
 
+        if (!addictionId.HasValue)
+            throw new Exception("Addiction ID was not returned from reader");
+
         return new Addiction(addictionId.Value, addictionTitle);
     }
 
@@ -99,6 +102,9 @@ public class Database
             ("$failed_at", failedAt),
             ("$note", note)
         );
+
+        if (!failureId.HasValue)
+            throw new Exception("Failure ID was not returned from reader");
 
         return new Failure(failureId.Value, failedAt, note);
     }
@@ -218,9 +224,10 @@ CREATE TRIGGER IF NOT EXISTS failure_failed_at_insert_constraint
   FOR EACH ROW
     WHEN TYPEOF(NEW.failed_at) <> 'text'
     OR unixepoch(NEW.failed_at) IS NULL
+    OR unixepoch(NEW.failed_at) > unixepoch()
     OR unixepoch(NEW.failed_at) % (60 * 60 * 24) <> 0
     BEGIN
-      SELECT RAISE(ABORT, 'failed_at must be a valid date string');
+      SELECT RAISE(ABORT, 'failed_at must be a valid date string and less then now');
     END;
 
 CREATE TRIGGER IF NOT EXISTS failure_failed_at_update_constraint
@@ -230,9 +237,10 @@ CREATE TRIGGER IF NOT EXISTS failure_failed_at_update_constraint
   FOR EACH ROW
     WHEN TYPEOF(NEW.failed_at) <> 'text'
     OR unixepoch(NEW.failed_at) IS NULL
+    OR unixepoch(NEW.failed_at) > unixepoch()
     OR unixepoch(NEW.failed_at) % (60 * 60 * 24) <> 0
     BEGIN
-      SELECT RAISE(ABORT, 'failed_at must be a valid date string');
+      SELECT RAISE(ABORT, 'failed_at must be a valid date string and less then now');
     END;
 ";
 

@@ -4,8 +4,6 @@ namespace AddictionsTracker.Models;
 
 public class DayWidth : INotifyPropertyChanged
 {
-    public static DayWidth Instance = new DayWidth();
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
     int width = 3;

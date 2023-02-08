@@ -10,8 +10,11 @@ namespace AddictionsTracker.Controls;
 
 public partial class ScaleControl : UserControl
 {
-    static DateOnly now = DateTime.Now.ToDateOnly();
-    DateOnly nextMonthToInsert = new DateOnly(now.Year, now.Month, 1);
+    DateOnly nextMonthToInsert = new DateOnly(
+        Globals.Now.Year,
+        Globals.Now.Month,
+        1
+    );
 
     public ScaleControl() => InitializeComponent();
     public ScaleControl(ObservableCollection<Addiction> addictions) : this()
@@ -45,7 +48,7 @@ public partial class ScaleControl : UserControl
 
                 do
                 {
-                    var days = now.Subtract(nextMonthToInsert);
+                    var days = Globals.Now.Subtract(nextMonthToInsert);
                     var label = new ScaleLabelControl(nextMonthToInsert, days);
                     var bar = new ScaleBarControl(days);
                     canvas.Children.Add(label);
@@ -67,7 +70,11 @@ public partial class ScaleControl : UserControl
             .Min();
         if (minDate == null)
         {
-            nextMonthToInsert = new DateOnly(now.Year, now.Month, 1);
+            nextMonthToInsert = new DateOnly(
+                Globals.Now.Year,
+                Globals.Now.Month,
+                1
+            );
             canvas.Children.Clear();
         }
         else

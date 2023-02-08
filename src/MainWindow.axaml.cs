@@ -4,8 +4,6 @@ using AddictionsTracker.Dialogs;
 using AddictionsTracker.Services;
 using System;
 using AddictionsTracker.Models;
-using Avalonia.Controls.Shapes;
-using Avalonia.Media;
 using Avalonia.Input;
 using System.Linq;
 using System.Collections.ObjectModel;
@@ -29,7 +27,7 @@ public partial class MainWindow : Window
         grid.PointerWheelChanged += (_, a) =>
         {
             if (a.KeyModifiers == KeyModifiers.Control)
-                DayWidth.Instance.Width += (int)a.Delta.Y;
+                Globals.DayWidth.Width += (int)a.Delta.Y;
         };
 
         var scale = new ScaleControl(addictions);
@@ -177,7 +175,7 @@ public partial class MainWindow : Window
     {
         var dialog = new FailureDialog(
             addiction.Title,
-            DateTime.Now.ToDateOnly(),
+            Globals.Now,
             string.Empty,
             addiction.Failures.Select(f => f.FailedAt)
         );
@@ -216,7 +214,7 @@ public partial class MainWindow : Window
     private async void deleteFailure(Addiction addiction, Failure failure)
     {
         var dialog = new ConfirmationDialog(
-            $"Are you sure that you want to delete failure of {addiction.Title} at {failure.FailedAt.ToString("yyyy MMMM dd")}?"
+            $"Are you sure that you want to delete failure of {addiction.Title} at {failure.FailedAt:yyyy MMMMM dd}?"
         );
         if (await dialog.ShowDialog<bool>(this))
         {

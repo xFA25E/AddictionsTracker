@@ -18,17 +18,17 @@ public class ScaleLabelControlViewModel : INotifyPropertyChanged
 {
     int days;
     public DateOnly Date { get; }
-    public int Left => days * DayWidth.Instance.Width;
+    public int Left => days * Globals.DayWidth.Width;
 
     public ScaleLabelControlViewModel(DateOnly date, int days)
     {
         this.days = days;
         Date = date;
 
-        DayWidth.Instance.PropertyChanged += (_, a) =>
+        Globals.DayWidth.PropertyChanged += (_, a) =>
         {
             if (a.PropertyName is string property
-                && property.Equals(nameof(DayWidth.Instance.Width)))
+                && property.Equals(nameof(Globals.DayWidth.Width)))
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Left)));
         };
     }

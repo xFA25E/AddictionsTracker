@@ -22,7 +22,7 @@ public partial class FailuresControl : UserControl
                 var failure = addiction.Failures[i];
                 var abstainedUntil =
                     (1 == addiction.Failures.Count)
-                    ? DateTime.Now.ToDateOnly().AddDays(1)
+                    ? Globals.Now.AddDays(1)
                     : ((0 == i)
                        ? childDataContext(0).AbstainedUntil
                        : addiction.Failures[i - 1].FailedAt);
@@ -59,6 +59,9 @@ public partial class FailuresControl : UserControl
     FailureControlViewModel childDataContext(int i)
     {
         var control = (FailureControl)failures.Children[i];
-        return (FailureControlViewModel)control.DataContext;
+        if (control.DataContext is FailureControlViewModel dc)
+            return dc;
+
+        throw new InvalidOperationException("FailureControl's DataContext was not initialized properly");
     }
 }

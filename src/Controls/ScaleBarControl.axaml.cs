@@ -16,7 +16,7 @@ public partial class ScaleBarControl : UserControl
 public class ScaleBarControlViewModel : INotifyPropertyChanged
 {
     int days;
-    public DayWidth DayWidth => DayWidth.Instance;
+    public DayWidth DayWidth => Globals.DayWidth;
     public int Left => DayWidth.Width * days;
 
     public ScaleBarControlViewModel(int days)

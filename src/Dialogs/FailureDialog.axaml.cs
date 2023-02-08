@@ -7,7 +7,6 @@ namespace AddictionsTracker.Dialogs;
 public partial class FailureDialog : Window
 {
     DateOnly date;
-    DateOnly now = DateTime.Now.ToDateOnly();
 
     public FailureDialog() => InitializeComponent();
     public FailureDialog(
@@ -23,7 +22,7 @@ public partial class FailureDialog : Window
             if (a.NewDate is DateTimeOffset dto)
             {
                 date = dto.ToDateOnly();
-                ok.IsEnabled = now >= date && !dates.Contains(date);
+                ok.IsEnabled = Globals.Now >= date && !dates.Contains(date);
             }
         };
 
