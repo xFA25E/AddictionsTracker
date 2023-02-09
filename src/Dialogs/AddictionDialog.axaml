@@ -13,7 +13,7 @@
     WindowStartupLocation="CenterOwner"
     x:Class="AddictionsTracker.Dialogs.AddictionDialog"
     Title="Addiction"
-    Background="#f2efdb"
+    Background="#EFEFEF"
     >
   <Border
       Margin="10"
@@ -42,12 +42,14 @@
       <DockPanel Margin="10">
         <DockPanel.Styles>
           <Style Selector="Button">
-            <Setter Property="Background" Value="#dae3c6"/>
+            <Setter Property="Background" Value="#B7E5DD"/>
             <Setter Property="BorderBrush" Value="#111f16"/>
+            <Setter Property="Foreground" Value="#111f16"/>
           </Style>
           <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#c0bf87"/>
+            <Setter Property="Background" Value="#92cffd"/>
             <Setter Property="BorderBrush" Value="#111f16"/>
+            <!-- <Setter Property="Foreground" Value="#111f16"/> -->
           </Style>
         </DockPanel.Styles>
         <Button Name="ok" Foreground="#111f16" Margin="5,0,5,0" Content="Ok" />
@@ -56,7 +58,6 @@
             DockPanel.Dock="Right"
             Margin="5,0,5,0"
             HorizontalAlignment="Right"
-            Foreground="#111f16"
             Content="Cancel"
             />
       </DockPanel>

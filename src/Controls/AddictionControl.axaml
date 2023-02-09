@@ -8,10 +8,12 @@
     <Style Selector="Button">
       <Setter Property="Background" Value="#dae3c6"/>
       <Setter Property="BorderBrush" Value="#111f16"/>
+      <Setter Property="Foreground" Value="#111f16"/>
     </Style>
     <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="#c0bf87"/>
       <Setter Property="BorderBrush" Value="#111f16"/>
+      <!-- <Setter Property="Foreground" Value="#111f16"/> -->
     </Style>
   </UserControl.Styles>
   <Button
@@ -20,7 +22,6 @@
       VerticalAlignment="Stretch"
       HorizontalContentAlignment="Right"
       CornerRadius="0"
-      Foreground="#111f16"
       BorderThickness="0,0,1,1"
       Content="{Binding Title}"
       >

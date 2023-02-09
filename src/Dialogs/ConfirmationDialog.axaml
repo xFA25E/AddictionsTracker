@@ -13,7 +13,7 @@
     WindowStartupLocation="CenterOwner"
     x:Class="AddictionsTracker.Dialogs.ConfirmationDialog"
     Title="Deletion"
-    Background="#f2efdb"
+    Background="#EFEFEF"
     >
   <Border
       Margin="10"
@@ -33,17 +33,18 @@
       <DockPanel DockPanel.Dock="Bottom" Margin="10">
         <DockPanel.Styles>
           <Style Selector="Button">
-            <Setter Property="Background" Value="#dae3c6"/>
+            <Setter Property="Background" Value="#B7E5DD"/>
             <Setter Property="BorderBrush" Value="#111f16"/>
+            <Setter Property="Foreground" Value="#111f16"/>
           </Style>
           <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#c0bf87"/>
+            <Setter Property="Background" Value="#92cffd"/>
             <Setter Property="BorderBrush" Value="#111f16"/>
+            <!-- <Setter Property="Foreground" Value="#111f16"/> -->
           </Style>
         </DockPanel.Styles>
         <Button
             Name="yes"
-            Foreground="#111f16"
             Margin="5,0,5,0"
             VerticalAlignment="Bottom"
             Content="Yes"
@@ -51,7 +52,6 @@
         <Button
             Name="no"
             DockPanel.Dock="Right"
-            Foreground="#111f16"
             Margin="5,0,5,0"
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"
