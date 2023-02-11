@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace AddictionsTracker;
 
@@ -21,26 +20,4 @@ public static class Extensions
 
     public static DateOnly ToDateOnly(this DateTimeOffset dto)
         => dto.DateTime.ToDateOnly();
-
-    public static int BinarySearch<T>(this IList<T> source, T item, IComparer<T>? comparer = null)
-    {
-        comparer = comparer ?? Comparer<T>.Default;
-
-        int lower = 0;
-        int upper = source.Count - 1;
-
-        while (lower <= upper)
-        {
-            int middle = lower + (upper - lower) / 2;
-            int comparisonResult = comparer.Compare(item, source[middle]);
-            if (comparisonResult == 0)
-                return middle;
-            else if (comparisonResult < 0)
-                upper = middle - 1;
-            else
-                lower = middle + 1;
-        }
-
-        return ~lower;
-    }
 }

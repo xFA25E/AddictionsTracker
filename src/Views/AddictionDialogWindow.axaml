@@ -4,15 +4,15 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    d:DesignWidth="800" d:DesignHeight="421"
-    Width="800" Height="421"
-    MaxWidth="800" MinHeight="421"
-    MinWidth="800" MaxHeight="421"
+    d:DesignWidth="460" d:DesignHeight="126"
+    Width="460" Height="126"
+    MaxWidth="460" MinHeight="126"
+    MinWidth="460" MaxHeight="126"
     SizeToContent="WidthAndHeight"
     CanResize="True"
     WindowStartupLocation="CenterOwner"
-    x:Class="AddictionsTracker.Dialogs.FailureDialog"
-    Title="Failure"
+    x:Class="AddictionsTracker.Views.AddictionDialogWindow"
+    Title="Addiction"
     Background="#EFEFEF"
     >
   <Border
@@ -23,34 +23,22 @@
       BorderBrush="#111f16"
       >
     <StackPanel>
-      <StackPanel Margin="5" Orientation="Horizontal">
-        <StackPanel.Styles>
-          <Style Selector="DatePicker">
-            <Setter Property="Background" Value="#B7E5DD"/>
-            <Setter Property="BorderBrush" Value="#111f16"/>
-          </Style>
-          <Style Selector="DatePicker:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#92cffd"/>
-            <Setter Property="BorderBrush" Value="#111f16"/>
-          </Style>
-        </StackPanel.Styles>
+      <DockPanel Margin="10">
         <TextBlock
-            Name="textBlock"
+            DockPanel.Dock="Left"
             Margin="5,0,5,0"
-            Foreground="#111f16"
             VerticalAlignment="Center"
+            Foreground="#111f16"
+            Text="Addiction"
             />
-        <DatePicker Name="datePicker" Foreground="#111f16" Margin="5,0,5,0" />
-      </StackPanel>
-      <TextBox
-          Name="textBox"
-          Margin="10,5,10,0"
-          MaxHeight="300"
-          Height="300"
-          AcceptsReturn="True"
-          Foreground="#111f16"
-          Watermark="Enter Note"
-          />
+        <TextBox
+            Margin="5,0,5,0"
+            MinWidth="300"
+            Watermark="Addiction"
+            Foreground="#111f16"
+            Text="{Binding Title}"
+            />
+      </DockPanel>
       <DockPanel Margin="10">
         <DockPanel.Styles>
           <Style Selector="Button">
@@ -61,22 +49,18 @@
           <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#92cffd"/>
             <Setter Property="BorderBrush" Value="#111f16"/>
-            <!-- <Setter Property="Foreground" Value="#111f16"/> -->
           </Style>
         </DockPanel.Styles>
         <Button
-            Name="ok"
             Margin="5,0,5,0"
-            VerticalAlignment="Bottom"
             Content="Ok"
-            />
+            Command="{Binding OkCommand}"/>
         <Button
-            Name="cancel"
             DockPanel.Dock="Right"
             Margin="5,0,5,0"
             HorizontalAlignment="Right"
-            VerticalAlignment="Bottom"
             Content="Cancel"
+            Command="{Binding CancelCommand}"
             />
       </DockPanel>
     </StackPanel>
