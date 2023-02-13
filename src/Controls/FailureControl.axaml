@@ -51,7 +51,7 @@
               </MultiBinding>
             </TextBlock.Text>
           </TextBlock>
-          <TextBlock Text="{Binding Failure.Note}"/>
+          <TextBlock TextWrapping="Wrap" Text="{Binding Failure.Note}"/>
         </StackPanel>
       </ToolTip.Tip>
       <Button.ContextMenu>

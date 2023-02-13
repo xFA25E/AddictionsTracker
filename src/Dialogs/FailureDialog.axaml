@@ -49,6 +49,7 @@
           Height="300"
           AcceptsReturn="True"
           Foreground="#111f16"
+          TextWrapping="Wrap"
           Watermark="Enter Note"
           />
       <DockPanel Margin="10">
