@@ -1,5 +1,38 @@
 {
   "nodes": {
+    "CSharpLanguageServer": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1672402157,
+        "narHash": "sha256-cGy09Q8wzQBH65n2zzIrmqOMkXtq6ylbwe6/tMbVNWw=",
+        "owner": "razzmatazz",
+        "repo": "csharp-language-server",
+        "rev": "626386f317627717b5a74503d54285bb09e804d8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "razzmatazz",
+        "ref": "0.6.0",
+        "repo": "csharp-language-server",
+        "type": "github"
+      }
+    },
+    "angle2": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1676285950,
+        "narHash": "sha256-7M1eB4FDSGPRf6ocvXc+joLieZp/wuQhoaNkkq4r/JE=",
+        "ref": "refs/heads/main",
+        "rev": "6374ac64b8882c15de9154506f4aed3b26a7f616",
+        "revCount": 20506,
+        "type": "git",
+        "url": "https://chromium.googlesource.com/angle/angle.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://chromium.googlesource.com/angle/angle.git"
+      }
+    },
     "flake-utils": {
       "locked": {
         "lastModified": 1667395993,
@@ -27,10 +60,65 @@
         "type": "indirect"
       }
     },
+    "piex": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1663989617,
+        "narHash": "sha256-p/kWjwE7CSsy610Ki6brELWNhcfAGt36KsJkwdeAuoo=",
+        "ref": "refs/heads/master",
+        "rev": "98ecd898ea61034d9f88adf50c7d82fd3ade1b2b",
+        "revCount": 241,
+        "type": "git",
+        "url": "https://android.googlesource.com/platform/external/piex.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://android.googlesource.com/platform/external/piex.git"
+      }
+    },
     "root": {
       "inputs": {
+        "CSharpLanguageServer": "CSharpLanguageServer",
+        "angle2": "angle2",
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "piex": "piex",
+        "skia": "skia",
+        "skiaSharp": "skiaSharp"
+      }
+    },
+    "skia": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1659990145,
+        "narHash": "sha256-FqVWnFN+dBBp6iDQxDCkohShbCz58QXMlXruyF8UYM4=",
+        "owner": "mono",
+        "repo": "skia",
+        "rev": "0c6ddc9e450c4a822ea10548b360e821ad97991e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mono",
+        "ref": "v2.88.3",
+        "repo": "skia",
+        "type": "github"
+      }
+    },
+    "skiaSharp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1664826228,
+        "narHash": "sha256-HmGN/iODzf9n2n0No9gWkQjGfDW9jw9hTODEI90acCc=",
+        "owner": "mono",
+        "repo": "SkiaSharp",
+        "rev": "655cff084fa9365efde6e989004eb818294c9b0f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mono",
+        "ref": "v2.88.3",
+        "repo": "SkiaSharp",
+        "type": "github"
       }
     }
   },

@@ -12,10 +12,10 @@ in
     inherit version;
     pname = "AddictionsTracker";
 
-    src = ./../../src;
+    src = ./../../../src;
 
     projectFile = "AddictionsTracker.csproj";
-    nugetDeps = ./deps.nix;
+    nugetDeps = ./nugetDeps.nix;
 
     dotnet-sdk = dotnetCorePackages.sdk_7_0;
     dotnet-runtime = dotnetCorePackages.runtime_7_0;
