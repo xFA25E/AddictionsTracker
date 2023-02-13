@@ -53,6 +53,7 @@
           AcceptsReturn="True"
           Watermark="Enter Note"
           Foreground="#111f16"
+          TextWrapping="Wrap"
           Text="{Binding Note}"
           />
       <DockPanel Margin="10">

@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AddictionsTracker.ViewModels;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using ReactiveUI;
@@ -51,5 +52,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     public void OpenContextMenu(object? sender, RoutedEventArgs _)
     {
         if (sender is Control control) control.ContextMenu?.Open();
+    }
+
+    public void OnPointerWheelChanged(object? sender, PointerWheelEventArgs a)
+    {
+        if (a.KeyModifiers == KeyModifiers.Control
+            && DataContext is MainWindowViewModel mwVM)
+        {
+            System.Console.WriteLine("Fuck you!");
+            mwVM.DayWidth += (int)a.Delta.Y;
+            System.Console.WriteLine($"{mwVM.DayWidth}");
+        }
     }
 }

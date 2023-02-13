@@ -1,0 +1,85 @@
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="clr-namespace:AddictionsTracker;assembly=AddictionsTracker"
+    mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+    x:Class="AddictionsTracker.Views.FailureView"
+    >
+  <StackPanel Orientation="Horizontal">
+    <Rectangle
+        IsVisible="{Binding !!AbstinenceDays}"
+        Fill="#B7E5DD"
+        ToolTip.ShowDelay="15"
+        >
+      <Rectangle.Width>
+        <MultiBinding Converter="{x:Static local:Converters.Multiply}">
+          <Binding Path="$parent[Window].DataContext.DayWidth"/>
+          <Binding Path="AbstinenceDays"/>
+        </MultiBinding>
+      </Rectangle.Width>
+      <ToolTip.Tip>
+        <TextBlock>
+          <TextBlock.Text>
+            <MultiBinding StringFormat="Abstained for {0} days from {1}">
+              <Binding Path="AbstinenceDays"/>
+              <Binding Path="Addiction.Title"/>
+            </MultiBinding>
+          </TextBlock.Text>
+        </TextBlock>
+      </ToolTip.Tip>
+    </Rectangle>
+    <Button
+        Classes="FailureButton"
+        BorderThickness="1,0,0,0"
+        Width="{Binding $parent[Window].DataContext.DayWidth}"
+        CornerRadius="0"
+        Padding="0"
+        VerticalAlignment="Stretch"
+        ToolTip.ShowDelay="15"
+        Click="OpenContextMenu"
+        >
+      <ToolTip.Tip>
+        <StackPanel>
+          <TextBlock>
+            <TextBlock.Text>
+              <MultiBinding StringFormat="At {0:yyyy MMM dd} failed {1}">
+                <Binding Path="Failure.FailedAt" />
+                <Binding Path="Addiction.Title"/>
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
+          <TextBlock TextWrapping="Wrap" Text="{Binding Failure.Note}"/>
+        </StackPanel>
+      </ToolTip.Tip>
+      <Button.ContextMenu>
+        <ContextMenu>
+          <MenuItem
+              Header="Edit"
+              Command="{Binding $parent[Window].DataContext.UpdateFailureCommand}"
+              >
+            <MenuItem.CommandParameter>
+              <MultiBinding>
+                <Binding Path="Addiction"/>
+                <Binding Path="Failure"/>
+              </MultiBinding>
+            </MenuItem.CommandParameter>
+          </MenuItem>
+          <MenuItem
+              Header="Remove"
+              Command="{Binding $parent[Window].DataContext.DeleteFailureCommand}"
+              >
+            <MenuItem.CommandParameter>
+              <MultiBinding>
+                <Binding Path="Addiction"/>
+                <Binding Path="Failure"/>
+              </MultiBinding>
+            </MenuItem.CommandParameter>
+          </MenuItem>
+          <MenuItem Header="Close Menu"/>
+        </ContextMenu>
+      </Button.ContextMenu>
+    </Button>
+  </StackPanel>
+</UserControl>

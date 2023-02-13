@@ -110,13 +110,13 @@ public class MainWindowViewModel : ViewModelBase
             var failureDialog = new FailureDialogWindowViewModel(
                 DateTime.Now.ToDateOnly(),
                 "",
-                aVM.Failures.Select(f => f.Failure.FailedAt)
+                aVM.Failures.Failures.Select(f => f.Failure.FailedAt)
             );
             var result = await ShowFailureDialog.Handle(failureDialog);
             if (result is (DateOnly failedAt, string note))
             {
                 var failure = database.InsertFailure(addiction, failedAt, note);
-                aVM.InsertFailure(failure);
+                aVM.Failures.InsertFailure(failure);
             }
         });
 
@@ -129,14 +129,14 @@ public class MainWindowViewModel : ViewModelBase
                 var failureDialog = new FailureDialogWindowViewModel(
                     failure.FailedAt,
                     failure.Note,
-                    aVM.Failures.Select(f => f.Failure.FailedAt)
+                    aVM.Failures.Failures.Select(f => f.Failure.FailedAt)
                     .Where(d => !d.Equals(failure.FailedAt))
                 );
                 var result = await ShowFailureDialog.Handle(failureDialog);
                 if (result is (DateOnly failedAt, string note))
                 {
                     database.UpdateFailure(failure, failedAt, note);
-                    aVM.UpdateFailure(failure, failedAt, note);
+                    aVM.Failures.UpdateFailure(failure, failedAt, note);
                 }
             }
         });
@@ -154,7 +154,7 @@ public class MainWindowViewModel : ViewModelBase
                 {
                     var aVM = Addictions.Single(a => a.Addiction.Id == addiction.Id);
                     database.DeleteFailure(failure);
-                    aVM.DeleteFailure(failure);
+                    aVM.Failures.DeleteFailure(failure);
                 }
             }
         });
