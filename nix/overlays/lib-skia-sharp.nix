@@ -1,4 +1,5 @@
 {
+  angle2Src,
   expat,
   fetchFromGitHub,
   fetchgit,
@@ -12,48 +13,42 @@
   libwebp,
   mesa,
   ninja,
+  piexSrc,
   python2,
   runCommand,
+  skiaSharpSrc,
+  src,
   stdenv,
+  writeText,
   zlib,
 }: let
-  version = "2.88.3";
+  versionScript = "${skiaSharpSrc}/native/linux/libSkiaSharp/libSkiaSharp.map";
 
-  skiaSharp = fetchFromGitHub {
-    owner = "mono";
-    repo = "SkiaSharp";
-    rev = "v${version}";
-    hash = "sha256-HmGN/iODzf9n2n0No9gWkQjGfDW9jw9hTODEI90acCc=";
-  };
+  parseSonameScript = writeText "parse-soname-script.awk" ''
+    $1 == "libSkiaSharp" && $2 == "soname" {
+        printf "%s", $3;
+        exit;
+    }
+  '';
 
-  versionScript = "${skiaSharp}/native/linux/libSkiaSharp/libSkiaSharp.map";
-  soname = builtins.readFile (runCommand "skia-soname" {} ''
-    awk '$1 == "libSkiaSharp" && $2 == "soname" {printf "%s", $3}' <${skiaSharp}/VERSIONS.txt >$out
+  parseVersionScript = writeText "parse-version-script.awk" ''
+    $1 == "SkiaSharp" && $2 == "file" {
+        printf "%s", $3;
+        exit;
+    }
+  '';
+
+  soname = builtins.readFile (runCommand "get-soname" {} ''
+    awk -f ${parseSonameScript} <"${skiaSharpSrc}/VERSIONS.txt" >$out
   '');
 
-  angle2 = fetchgit {
-    url = "https://chromium.googlesource.com/angle/angle.git";
-    rev = "47b3db22be33213eea4ad58f2453ee1088324ceb";
-    sha256 = "sha256-ZF5wDOqh3cRfQGwOMay//4aWh9dBWk/cLmUsx+Ab2vw=";
-  };
-
-  piex = fetchgit {
-    url = "https://android.googlesource.com/platform/external/piex.git";
-    rev = "bb217acdca1cc0c16b704669dd6f91a1b509c406";
-    sha256 = "05ipmag6k55jmidbyvg5mkqm69zfw03gfkqhi9jnjlmlbg31y412";
-  };
+  version = builtins.readFile (runCommand "get-version" {} ''
+    awk -f ${parseVersionScript} <"${skiaSharpSrc}/VERSIONS.txt" >$out
+  '');
 in
   stdenv.mkDerivation {
-    inherit version;
-
+    inherit src version;
     pname = "libSkiaSharp";
-
-    src = fetchFromGitHub {
-      owner = "mono";
-      repo = "skia";
-      rev = "v${version}";
-      sha256 = "sha256-FqVWnFN+dBBp6iDQxDCkohShbCz58QXMlXruyF8UYM4=";
-    };
 
     nativeBuildInputs = [gn ninja python2];
 
@@ -72,8 +67,8 @@ in
 
     preConfigure = ''
       mkdir -p third_party/externals
-      ln -s ${angle2} third_party/externals/angle2
-      ln -s ${piex} third_party/externals/piex
+      ln -s ${angle2Src} third_party/externals/angle2
+      ln -s ${piexSrc} third_party/externals/piex
     '';
 
     configurePhase = ''
